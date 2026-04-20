@@ -1,0 +1,24 @@
+services:
+  citationclaw:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: citationclaw
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      CITATIONCLAW_CONFIG_PATH: /app/runtime/config.json
+    volumes:
+      - ./docker-data/runtime:/app/runtime
+      - ./docker-data/data:/app/data
+      - ./docker-data/debug:/app/debug
+    command:
+      - python
+      - -m
+      - citationclaw
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --no-browser
