@@ -26,6 +26,7 @@ data/result-*/
 data/cache/
 config.json
 .superpowers/
+.worktrees/
 
 # Local-only files (PyPI publishing & Claude instructions)
 CLAUDE.md
