@@ -178,6 +178,10 @@ var SpaRouter = (function () {
     }
 
     function init() {
+        if (!document.querySelector('.spa-panel')) {
+            return;
+        }
+
         // Bind all data-spa-panel links (navbar + inline links)
         document.addEventListener('click', function (e) {
             var link = e.target.closest('[data-spa-panel]');
@@ -347,55 +351,188 @@ async function loadResults() {
 }
 
 function _resultsSetLoading(show) {
-    document.getElementById('loading-indicator').style.display = show ? 'block' : 'none';
+    const loading = document.getElementById('loading-indicator');
+    if (loading) loading.style.display = show ? 'grid' : 'none';
 }
+
+function _resultsSetEmpty(title, copy) {
+    const titleEl = document.getElementById('results-empty-title');
+    const copyEl = document.getElementById('results-empty-copy');
+    if (titleEl) titleEl.textContent = title;
+    if (copyEl) copyEl.textContent = copy;
+}
+
+function _resultsFormatDate(timestamp) {
+    return new Date(timestamp * 1000).toLocaleString('zh-CN', { hour12: false });
+}
+
+function _resultsFormatSize(bytes) {
+    if (bytes >= 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024 / 1024).toFixed(2)} GB`;
+    if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+    if (bytes >= 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${bytes} B`;
+}
+
+function _resultsBuildFileUrl(prefix, path) {
+    return `${prefix}/${encodeURIComponent(path).replaceAll('%2F', '/')}`;
+}
+
+function _resultsTypeMeta(type) {
+    if (type === '.xlsx') {
+        return { label: 'Excel', icon: 'bi-file-earmark-excel', chipClass: 'is-excel', accent: '' };
+    }
+    if (type === '.json') {
+        return { label: 'JSON', icon: 'bi-filetype-json', chipClass: 'is-json', accent: '' };
+    }
+    if (type === '.jsonl') {
+        return { label: 'JSONL', icon: 'bi-file-earmark-code', chipClass: 'is-jsonl', accent: '' };
+    }
+    if (type === '.html') {
+        return { label: 'Report', icon: 'bi-file-earmark-richtext', chipClass: 'is-report', accent: 'is-report' };
+    }
+    return { label: type || '文件', icon: 'bi-file-earmark', chipClass: '', accent: '' };
+}
+
+function _resultsSetWorkspaceSummary({ title, count, updated, note }) {
+    const titleEl = document.getElementById('results-panel-title');
+    const countEl = document.getElementById('results-panel-count');
+    const updatedEl = document.getElementById('results-panel-updated');
+    const noteEl = document.getElementById('results-panel-note');
+    if (titleEl && title !== undefined) titleEl.textContent = title;
+    if (countEl && count !== undefined) countEl.textContent = count;
+    if (updatedEl && updated !== undefined) updatedEl.textContent = updated;
+    if (noteEl && note !== undefined) noteEl.textContent = note;
+}
+
+function _resultsRenderQuickStats(stats) {
+    const host = document.getElementById('results-quick-stats');
+    if (!host) return;
+
+    host.innerHTML = stats.map(stat => `
+        <div class="cc-results-stat-card">
+            <span class="cc-results-stat-label">${escapeHtml(stat.label)}</span>
+            <strong class="cc-results-stat-value">${escapeHtml(stat.value)}</strong>
+        </div>
+    `).join('');
+}
+
+function _resultsRenderRecent(items) {
+    const host = document.getElementById('results-recent-list');
+    if (!host) return;
+
+    if (!items.length) {
+        host.innerHTML = `
+            <div class="cc-results-recent-empty">
+                <span class="cc-results-recent-dot is-empty"></span>
+                <div>
+                    <p>还没有最近活动</p>
+                    <small>生成结果后，这里会显示最新批次与文件更新。</small>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    host.innerHTML = items.map(item => `
+        <div class="cc-results-recent-item">
+            <span class="cc-results-recent-dot ${item.dotClass || ''}"></span>
+            <div>
+                <p>${escapeHtml(item.title)}</p>
+                <small>${escapeHtml(item.meta)}</small>
+            </div>
+        </div>
+    `).join('');
+}
+
 function _resultsShowView(view) {
     // view: 'empty' | 'folders' | 'files'
-    document.getElementById('empty-state').style.display = view === 'empty' ? 'block' : 'none';
-    document.getElementById('results-folder-view').style.display = view === 'folders' ? 'block' : 'none';
-    document.getElementById('results-file-view').style.display = view === 'files' ? 'block' : 'none';
-    document.getElementById('results-back-btn').style.display = view === 'files' ? 'inline-flex' : 'none';
-    document.getElementById('results-panel-title').textContent = view === 'files'
-        ? (window._resultCurrentFolderDisplay || '文件夹内容')
-        : '结果文件夹';
+    const emptyState = document.getElementById('empty-state');
+    const folderView = document.getElementById('results-folder-view');
+    const fileView = document.getElementById('results-file-view');
+    const backBtn = document.getElementById('results-back-btn');
+    if (emptyState) emptyState.style.display = view === 'empty' ? 'grid' : 'none';
+    if (folderView) folderView.style.display = view === 'folders' ? 'block' : 'none';
+    if (fileView) fileView.style.display = view === 'files' ? 'block' : 'none';
+    if (backBtn) backBtn.style.display = view === 'files' ? 'inline-flex' : 'none';
 }
 
 async function resultsShowFolders() {
     _resultsSetLoading(true);
+    _resultsSetEmpty('暂无结果文件', '请先执行任务生成结果。');
     _resultsShowView('empty');
     try {
         const res = await fetch('/api/results/folders');
         const folders = await res.json();
+        window._resultsFolders = folders;
+        window._resultsCurrentFolderDisplay = null;
         _resultsSetLoading(false);
         if (folders.length === 0) {
+            _resultsSetWorkspaceSummary({
+                title: '结果文件夹',
+                count: '0 个批次',
+                updated: '尚无结果',
+                note: '完成至少一次分析后，这里会展示导出批次。',
+            });
+            _resultsRenderQuickStats([
+                { label: '结果批次', value: '0' },
+                { label: '导出文件', value: '0' },
+                { label: '最新更新', value: '--' },
+                { label: '当前视图', value: 'Folders' },
+            ]);
+            _resultsRenderRecent([]);
             _resultsShowView('empty');
             return;
         }
+
         const list = document.getElementById('results-folder-list');
-        list.innerHTML = '';
-        folders.forEach(folder => {
-            const date = new Date(folder.modified * 1000).toLocaleString('zh-CN');
-            const sizeMB = (folder.size / 1024 / 1024).toFixed(2);
-            const item = document.createElement('div');
-            item.className = 'list-group-item d-flex align-items-center gap-3 py-3';
-            item.innerHTML = `
-                <i class="bi bi-folder2 fs-4 text-warning flex-shrink-0"></i>
-                <div class="flex-grow-1 min-width-0" style="cursor:pointer" data-folder="${folder.name}" data-display="${folder.display_name}">
-                    <div class="fw-semibold text-truncate">${folder.display_name}</div>
-                    <small class="text-muted">${folder.file_count} 个文件 &nbsp;·&nbsp; ${sizeMB} MB &nbsp;·&nbsp; ${date}</small>
-                </div>
-                <i class="bi bi-chevron-right text-muted flex-shrink-0" style="cursor:pointer" data-folder="${folder.name}" data-display="${folder.display_name}"></i>
-                <button class="btn btn-sm btn-outline-danger flex-shrink-0 ms-1" data-delete="${folder.name}" title="删除此文件夹">
-                    <i class="bi bi-trash"></i>
-                </button>
+        if (!list) return;
+
+        list.innerHTML = folders.map((folder, index) => {
+            const date = _resultsFormatDate(folder.modified);
+            const folderLabel = folder.name === '__legacy__' ? 'Legacy' : 'Analysis Batch';
+            const note = folder.name === '__legacy__'
+                ? '旧版目录结果已聚合展示，方便你回看历史导出。'
+                : '按当前分析批次组织，包含结构化文件与可视化报告。';
+            const deleteButton = folder.name === '__legacy__'
+                ? ''
+                : `
+                    <button type="button" class="cc-results-icon-btn" data-delete="${folder.name}" title="删除此批次">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                `;
+
+            return `
+                <article class="cc-folder-card ${index === 0 ? 'is-featured' : ''}">
+                    <div class="cc-folder-card-top">
+                        <span class="cc-results-chip ${folder.name === '__legacy__' ? 'is-legacy' : 'is-live'}">${folderLabel}</span>
+                        ${deleteButton}
+                    </div>
+                    <h3>${escapeHtml(folder.display_name)}</h3>
+                    <p>${escapeHtml(note)}</p>
+                    <div class="cc-folder-meta">
+                        <span><i class="bi bi-folder2-open"></i> ${folder.file_count} 个文件</span>
+                        <span><i class="bi bi-hdd-stack"></i> ${_resultsFormatSize(folder.size)}</span>
+                        <span><i class="bi bi-clock"></i> ${escapeHtml(date)}</span>
+                    </div>
+                    <div class="cc-folder-actions">
+                        <button type="button" class="cc-results-link-btn is-primary" data-folder="${folder.name}" data-display="${escapeHtml(folder.display_name)}">
+                            打开批次
+                        </button>
+                    </div>
+                </article>
             `;
-            item.querySelector('[data-folder]').addEventListener('click', (e) => {
-                const el = e.currentTarget;
+        }).join('');
+
+        list.querySelectorAll('[data-folder]').forEach(el => {
+            el.addEventListener('click', () => {
                 resultsOpenFolder(el.dataset.folder, el.dataset.display);
             });
-            item.querySelector('[data-delete]').addEventListener('click', async (e) => {
+        });
+
+        list.querySelectorAll('[data-delete]').forEach(el => {
+            el.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                const name = e.currentTarget.dataset.delete;
+                const name = el.dataset.delete;
                 if (!confirm(`确定要删除文件夹 "${name}" 及其所有文件吗？此操作不可撤销。`)) return;
                 try {
                     const r = await fetch(`/api/results/folder/${encodeURIComponent(name)}`, { method: 'DELETE' });
@@ -405,12 +542,39 @@ async function resultsShowFolders() {
                     alert('删除失败：' + err.message);
                 }
             });
-            list.appendChild(item);
         });
+
+        const totalFiles = folders.reduce((sum, folder) => sum + folder.file_count, 0);
+        _resultsSetWorkspaceSummary({
+            title: '结果文件夹',
+            count: `${folders.length} 个批次`,
+            updated: `最新更新 ${_resultsFormatDate(folders[0].modified)}`,
+            note: '按分析批次浏览最新结果，进入后可直接下载结构化文件或预览 HTML 报告。',
+        });
+        _resultsRenderQuickStats([
+            { label: '结果批次', value: String(folders.length) },
+            { label: '导出文件', value: String(totalFiles) },
+            { label: '最新更新', value: _resultsFormatDate(folders[0].modified).slice(0, 16) },
+            { label: '当前视图', value: 'Folders' },
+        ]);
+        _resultsRenderRecent(
+            folders.slice(0, 4).map((folder, index) => ({
+                title: folder.display_name,
+                meta: `${folder.file_count} 个文件 · ${_resultsFormatDate(folder.modified)}`,
+                dotClass: index === 0 ? 'is-live' : '',
+            }))
+        );
         _resultsShowView('folders');
     } catch (err) {
         console.error('加载文件夹失败:', err);
         _resultsSetLoading(false);
+        _resultsSetEmpty('加载失败', '结果目录读取失败，请稍后重试。');
+        _resultsSetWorkspaceSummary({
+            title: '结果文件夹',
+            count: '读取失败',
+            updated: '请重试',
+            note: '结果目录暂时不可用。',
+        });
         _resultsShowView('empty');
     }
 }
@@ -418,43 +582,99 @@ async function resultsShowFolders() {
 async function resultsOpenFolder(folderName, displayName) {
     window._resultCurrentFolderDisplay = displayName;
     _resultsSetLoading(true);
+    _resultsSetEmpty('当前批次暂无文件', '这个批次还没有可下载的结果文件。');
     _resultsShowView('empty');
     try {
         const res = await fetch(`/api/results/list?folder=${encodeURIComponent(folderName)}`);
         const files = await res.json();
+        window._resultsCurrentFiles = files;
         _resultsSetLoading(false);
         const table = document.getElementById('results-table');
-        table.innerHTML = '';
-        files.forEach(file => {
-            const typeClass = file.type === '.xlsx' ? 'success' :
-                              file.type === '.json' ? 'info' :
-                              file.type === '.html' ? 'primary' : 'warning';
-            const size = (file.size / 1024).toFixed(2);
-            const date = new Date(file.modified * 1000).toLocaleString('zh-CN');
-            const icon = file.type === '.xlsx' ? 'excel' :
-                         file.type === '.html' ? 'richtext' : 'code';
-            const actionBtn = file.type === '.html'
-                ? `<a href="/api/results/view/${file.path}" target="_blank" class="btn btn-sm btn-primary">
-                       <i class="bi bi-eye"></i> 查看报告
-                   </a>`
-                : `<a href="/api/results/download/${file.path}" class="btn btn-sm btn-outline-primary" download>
-                       <i class="bi bi-download"></i> 下载
-                   </a>`;
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><i class="bi bi-file-earmark-${icon}"></i> ${file.name}</td>
-                <td><span class="badge bg-${typeClass}">${file.type}</span></td>
-                <td>${size} KB</td>
-                <td>${date}</td>
-                <td>${actionBtn}</td>
+        if (!table) return;
+
+        if (files.length === 0) {
+            _resultsSetWorkspaceSummary({
+                title: displayName || '文件夹内容',
+                count: '0 个文件',
+                updated: '暂无导出',
+                note: '当前批次还没有可下载内容。',
+            });
+            _resultsRenderQuickStats([
+                { label: '当前批次', value: displayName || '未命名' },
+                { label: '文件数量', value: '0' },
+                { label: '报告文件', value: '0' },
+                { label: '当前视图', value: 'Files' },
+            ]);
+            _resultsRenderRecent([]);
+            _resultsShowView('empty');
+            return;
+        }
+
+        table.innerHTML = files.map(file => {
+            const meta = _resultsTypeMeta(file.type);
+            const fileUrl = file.type === '.html'
+                ? _resultsBuildFileUrl('/api/results/view', file.path)
+                : _resultsBuildFileUrl('/api/results/download', file.path);
+            const actionLabel = file.type === '.html' ? '查看报告' : '下载文件';
+            const actionIcon = file.type === '.html' ? 'bi-eye' : 'bi-download';
+            const actionAttrs = file.type === '.html' ? ' target="_blank"' : ' download';
+            const description = file.type === '.html'
+                ? '最终画像报告，可在浏览器中直接预览。'
+                : '结构化结果文件，适合下载后继续分析。';
+
+            return `
+                <article class="cc-file-card ${meta.accent}">
+                    <div class="cc-file-card-top">
+                        <span class="cc-results-chip ${meta.chipClass}">${meta.label}</span>
+                        <span class="cc-file-size">${_resultsFormatSize(file.size)}</span>
+                    </div>
+                    <h3>${escapeHtml(file.name)}</h3>
+                    <p>${escapeHtml(description)}</p>
+                    <div class="cc-file-meta">
+                        <span><i class="bi ${meta.icon}"></i> ${escapeHtml(file.type || '文件')}</span>
+                        <span><i class="bi bi-calendar3"></i> ${escapeHtml(_resultsFormatDate(file.modified))}</span>
+                    </div>
+                    <div class="cc-file-actions">
+                        <a href="${fileUrl}" class="cc-results-link-btn ${file.type === '.html' ? 'is-primary' : ''}"${actionAttrs}>
+                            <i class="bi ${actionIcon}"></i>
+                            ${actionLabel}
+                        </a>
+                    </div>
+                </article>
             `;
-            table.appendChild(row);
+        }).join('');
+
+        const reportCount = files.filter(file => file.type === '.html').length;
+        _resultsSetWorkspaceSummary({
+            title: displayName || '文件夹内容',
+            count: `${files.length} 个文件`,
+            updated: `最新更新 ${_resultsFormatDate(files[0].modified)}`,
+            note: '文件已按修改时间排序，可直接下载 Excel / JSON / JSONL，或打开 HTML 报告。',
         });
-        document.getElementById('file-count').textContent = files.length;
+        _resultsRenderQuickStats([
+            { label: '当前批次', value: displayName || '未命名' },
+            { label: '文件数量', value: String(files.length) },
+            { label: '报告文件', value: String(reportCount) },
+            { label: '当前视图', value: 'Files' },
+        ]);
+        _resultsRenderRecent(
+            files.slice(0, 4).map((file, index) => ({
+                title: file.name,
+                meta: `${file.type} · ${_resultsFormatDate(file.modified)}`,
+                dotClass: file.type === '.html' ? 'is-live' : (index === 0 ? 'is-recent' : ''),
+            }))
+        );
         _resultsShowView('files');
     } catch (err) {
         console.error('加载文件夹内容失败:', err);
         _resultsSetLoading(false);
+        _resultsSetEmpty('加载失败', '当前批次内容读取失败，请稍后重试。');
+        _resultsSetWorkspaceSummary({
+            title: displayName || '文件夹内容',
+            count: '读取失败',
+            updated: '请重试',
+            note: '当前批次暂时不可用。',
+        });
         _resultsShowView('empty');
     }
 }
@@ -1271,10 +1491,15 @@ function initConfigPanel() {
 
 // ==================== Results Panel Init ====================
 function initResultsPanel() {
-    // 刷新按钮
-    document.getElementById('refresh-btn')?.addEventListener('click', () => {
-        loadResults();
+    document.querySelectorAll('[data-results-refresh]').forEach(button => {
+        button.addEventListener('click', () => {
+            loadResults();
+        });
     });
+
+    if (window.location.pathname === '/results') {
+        loadResults();
+    }
 }
 
 // ==================== DOMContentLoaded ====================

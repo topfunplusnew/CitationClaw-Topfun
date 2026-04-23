@@ -10,9 +10,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="/static/css/style.css" rel="stylesheet">
 </head>
-<body>
-    <nav class="agent-navbar">
-        <div class="agent-navbar-inner">
+<body class="cc-app">
+    <nav class="agent-navbar cc-navbar">
+        <div class="agent-navbar-inner cc-navbar-inner">
             <a href="/" class="agent-brand">
                 <div class="agent-brand-icon">
                     <img src="/static/citationclaw_icon.png" width="28" height="28" alt="CitationClaw" style="display:block">
@@ -22,18 +22,34 @@
                     <div class="agent-brand-sub">Turning Every Citation into Explainable Impact</div>
                 </div>
             </a>
-            <div class="agent-nav-links">
-                <a href="#" class="agent-nav-link" data-spa-panel="home">
-                    <i class="bi bi-house-fill"></i> 首页
+            <div class="agent-nav-links cc-nav-links">
+                <a href="/" class="agent-nav-link{% if request.url.path == '/' %} active{% endif %}" data-spa-panel="home">
+                    Dashboard
                 </a>
-                <a href="#" class="agent-nav-link" data-spa-panel="results">
-                    <i class="bi bi-folder2-open"></i> 结果
+                <a href="/#scholar-import-card" class="agent-nav-link cc-nav-link--section">
+                    Imports
                 </a>
+                <a href="/#service-tier-card" class="agent-nav-link cc-nav-link--section">
+                    Service Levels
+                </a>
+                <a href="/config" class="agent-nav-link{% if request.url.path == '/config' %} active{% endif %}" data-spa-panel="config">
+                    API Config
+                </a>
+                <a href="/results" class="agent-nav-link{% if request.url.path == '/results' %} active{% endif %}" data-spa-panel="results">
+                    Reports
+                </a>
+            </div>
+            <div class="cc-navbar-tools">
+                <div class="cc-navbar-search">
+                    <i class="bi bi-search"></i>
+                    <input type="search" placeholder="Search analysis...">
+                </div>
+                <a href="/" class="cc-navbar-cta" data-spa-panel="home">New Analysis</a>
             </div>
         </div>
     </nav>
 
-    <div class="agent-page-content">
+    <div class="agent-page-content cc-shell">
         {% block content %}{% endblock %}
     </div>
 

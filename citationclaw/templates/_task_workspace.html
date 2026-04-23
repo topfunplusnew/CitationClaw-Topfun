@@ -1,0 +1,118 @@
+<div class="cc-task-workspace">
+    {% set kicker = "Execution Console" %}
+    {% set title = "任务监控 <span>/ Task Monitor</span>" %}
+    {% set description = "保留原有日志、阶段与控制逻辑，仅统一到学术工作台视觉体系。" %}
+    {% include "_workspace_page_head.html" %}
+
+    <div class="cc-task-grid">
+        <section class="cc-task-main">
+            <div class="cc-terminal-card">
+                <div class="cc-terminal-head">
+                    <div>
+                        <p class="cc-section-kicker">Live Log</p>
+                        <h3>任务日志</h3>
+                    </div>
+                    <span class="badge bg-secondary" id="ws-status">连接中...</span>
+                </div>
+                <div id="log-container" class="log-terminal">
+                    <div class="text-muted text-center p-4">
+                        <i class="bi bi-hourglass-split"></i> 等待日志输出...
+                    </div>
+                </div>
+                <div class="cc-terminal-foot">
+                    <button id="clear-logs-btn" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-trash"></i> 清空日志
+                    </button>
+                    <button id="auto-scroll-btn" class="btn btn-sm btn-outline-primary active">
+                        <i class="bi bi-arrow-down-square"></i> 自动滚动
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <aside class="cc-task-rail">
+            <div class="cc-rail-card">
+                <div class="cc-section-head cc-section-head--tight">
+                    <div>
+                        <p class="cc-section-kicker">Progress</p>
+                        <h3>任务进度</h3>
+                    </div>
+                </div>
+                <div class="progress cc-task-progress-wrap">
+                    <div id="progress-bar"
+                         class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                         role="progressbar"
+                         style="width: 0%"
+                         aria-valuenow="0"
+                         aria-valuemin="0"
+                         aria-valuemax="100">
+                        0%
+                    </div>
+                </div>
+                <p id="progress-text" class="text-center text-muted mb-0">
+                    <i class="bi bi-hourglass"></i> 准备中...
+                </p>
+            </div>
+
+            <div class="cc-rail-card">
+                <div class="cc-section-head cc-section-head--tight">
+                    <div>
+                        <p class="cc-section-kicker">Stages</p>
+                        <h3>任务阶段</h3>
+                    </div>
+                </div>
+                <div class="cc-task-stage-list">
+                    <div class="cc-task-stage" id="stage-1">
+                        <i class="bi bi-circle text-muted"></i>
+                        阶段1: 抓取引用列表
+                    </div>
+                    <div class="cc-task-stage" id="stage-2">
+                        <i class="bi bi-circle text-muted"></i>
+                        阶段2: 搜索作者信息
+                    </div>
+                    <div class="cc-task-stage" id="stage-3">
+                        <i class="bi bi-circle text-muted"></i>
+                        阶段3: 导出结果
+                    </div>
+                </div>
+            </div>
+
+            <div class="cc-rail-card">
+                <div class="cc-section-head cc-section-head--tight">
+                    <div>
+                        <p class="cc-section-kicker">Controls</p>
+                        <h3>任务控制</h3>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    <div id="initial-choice" style="display: block;">
+                        <button id="import-history-btn" class="btn btn-primary btn-lg mb-2">
+                            <i class="bi bi-folder-open"></i> 导入历史记录
+                        </button>
+                        <button id="start-scraping-btn" class="btn btn-success btn-lg">
+                            <i class="bi bi-play-circle"></i> 开始抓取
+                        </button>
+                        <div class="text-muted small mt-2 text-center">
+                            如果已有抓取结果可导入历史记录，否则开始新的抓取
+                        </div>
+                    </div>
+
+                    <button id="continue-btn" class="btn btn-success btn-lg" style="display: none;">
+                        <i class="bi bi-play-fill"></i> 继续执行阶段2/3
+                    </button>
+
+                    <button id="cancel-btn" class="btn btn-danger" style="display: none;">
+                        <i class="bi bi-stop-circle"></i> 取消任务
+                    </button>
+
+                    <a href="/results" class="btn btn-outline-primary">
+                        <i class="bi bi-file-earmark-text"></i> 查看结果
+                    </a>
+                    <a href="/config" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> 返回配置
+                    </a>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>

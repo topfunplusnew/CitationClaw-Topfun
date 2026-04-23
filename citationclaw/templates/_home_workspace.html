@@ -1,0 +1,295 @@
+<div id="spa-panel-home" class="spa-panel spa-panel-active cc-home-workspace">
+    {% set kicker = "Citation Workspace" %}
+    {% set title = "论文被引画像分析" %}
+    {% set description = "Scholarly integrity & citation lineage mapping with rectilinear precision." %}
+    {% set page_head_class = "cc-page-head--dashboard" %}
+    {% set actions %}
+    <div class="cc-summary-stats">
+        <div class="cc-summary-card">
+            <span>H-INDEX</span>
+            <strong>42</strong>
+        </div>
+        <div class="cc-summary-card">
+            <span>Citations</span>
+            <strong>1.2K</strong>
+        </div>
+        <div class="cc-summary-card">
+            <span>Reports</span>
+            <strong>89</strong>
+        </div>
+    </div>
+    {% endset %}
+    {% include "_workspace_page_head.html" %}
+
+    <div class="cc-home-grid">
+        <section class="cc-home-main">
+            <div class="cc-home-card cc-home-card--hero">
+                <div class="cc-section-head">
+                    <div>
+                        <p class="cc-section-kicker">Dashboard</p>
+                        <h2>分析任务设置</h2>
+                    </div>
+                    <a href="https://visionxlab.github.io/CitationClaw/guidelines.html" target="_blank" rel="noopener" class="cc-page-link">
+                        <i class="bi bi-journal-text"></i>
+                        配置指引
+                    </a>
+                </div>
+
+                <div class="cc-home-field">
+                    <label for="paper-input" class="cc-field-label">目标论文题目</label>
+                    <div id="paper-list"></div>
+                    <input type="text" id="paper-input" autocomplete="off" class="cc-home-paper-input"
+                        placeholder="输入论文题目，按回车添加，可连续录入多篇论文...">
+                </div>
+
+                <div class="cc-import-grid">
+                    <div class="cc-mini-panel" id="scholar-import-card">
+                        <div class="cc-mini-panel-head">
+                            <span>从 Google Scholar 主页导入</span>
+                            <button type="button" class="cc-mini-panel-toggle" onclick="toggleScholarImport()">
+                                <span>展开</span>
+                                <i id="scholar-chevron" class="bi bi-chevron-up"></i>
+                            </button>
+                        </div>
+                        <div id="scholar-import-body">
+                            <div class="cc-inline-inputs">
+                                <input id="scholar-url-input" type="text" class="form-control"
+                                    placeholder="https://scholar.google.com/citations?user=...">
+                                <button class="btn-agent-primary" id="scholar-fetch-btn" onclick="fetchScholarPapers()">
+                                    获取论文列表
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cc-mini-panel">
+                        <div class="cc-mini-panel-head">
+                            <span>从缓存直接生成报告</span>
+                            <span class="cc-page-pill">Phase 1-4 Skip</span>
+                        </div>
+                        <div class="cc-inline-inputs">
+                            <input id="idx-cache-title" type="text" class="form-control" placeholder="输入已缓存的论文标题…">
+                            <button id="idx-cache-run-btn" class="btn-agent-secondary">
+                                <i class="bi bi-lightning-charge-fill"></i>
+                                生成报告
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="scholar-result-area" class="cc-scholar-results" style="display:none;">
+                    <div class="cc-scholar-results-head">
+                        <div class="cc-scholar-results-tools">
+                            <span id="scholar-paper-count"></span>
+                            <a href="#" onclick="scholarSelectAll(true);return false;">全选</a>
+                            <a href="#" onclick="scholarSelectAll(false);return false;">全不选</a>
+                        </div>
+                        <button class="btn-agent-primary btn-agent-sm" onclick="addScholarSelected()">添加所选至分析列表</button>
+                    </div>
+                    <div id="scholar-paper-list" class="cc-scholar-paper-list"></div>
+                </div>
+            </div>
+
+            <div class="cc-home-detail-grid">
+                <div class="cc-home-card" id="service-tier-card">
+                    <div class="cc-section-head cc-section-head--tight">
+                        <div>
+                            <p class="cc-section-kicker">Service Selection</p>
+                            <h3>服务层级</h3>
+                        </div>
+                    </div>
+
+                    <div class="cc-home-field cc-home-field--compact">
+                        <label for="idx-service-tier" class="cc-field-label">分析方案</label>
+                        <select id="idx-service-tier" class="form-select">
+                            <option value="basic" selected>基础服务 — 搜索学者 + 筛选大佬（无引文描述分析）</option>
+                            <option value="advanced" disabled>进阶服务 — 【紧急维护】暂不可用</option>
+                            <option value="full" disabled>全面服务 — 【紧急维护】暂不可用</option>
+                        </select>
+                    </div>
+
+                    <div class="cc-checkbox-grid">
+                        <label class="cc-check-row">
+                            <input class="form-check-input" type="checkbox" id="idx-renowned-scholar" checked>
+                            <span>启用著名学者筛选</span>
+                        </label>
+                        <label class="cc-check-row">
+                            <input class="form-check-input" type="checkbox" id="idx-author-verify">
+                            <span>启用作者信息验证</span>
+                        </label>
+                        <label class="cc-check-row">
+                            <input class="form-check-input" type="checkbox" id="idx-dashboard" checked>
+                            <span>启用画像报告生成</span>
+                        </label>
+                    </div>
+
+                    <div class="cc-inline-notice">
+                        <label class="cc-check-row cc-check-row--wide">
+                            <input class="form-check-input" type="checkbox" id="enable-year-traverse" role="switch">
+                            <span>按年份遍历</span>
+                        </label>
+                        <span class="cc-page-pill is-warning">适合 &gt;1000 引</span>
+                    </div>
+                    <p class="cc-muted-copy">
+                        逐年分段抓取，可突破 Google Scholar 1000 条限制。若引用量较高，系统会在运行时再次提示确认。
+                    </p>
+                </div>
+
+                <div class="cc-home-card" id="api-config-card">
+                    <div class="cc-section-head cc-section-head--tight">
+                        <div>
+                            <p class="cc-section-kicker">API Config</p>
+                            <h3>快速 API 配置</h3>
+                        </div>
+                        <a href="#" data-spa-panel="config" class="cc-page-link">
+                            <i class="bi bi-sliders"></i>
+                            完整配置
+                        </a>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">ScraperAPI Key(s)</label>
+                            <input type="text" id="idx-scraper-keys" class="form-control" placeholder="key1,key2,key3">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">V-API Key</label>
+                            <input type="text" id="idx-openai-key" class="form-control" placeholder="sk-..." autocomplete="off">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Base URL</label>
+                            <input type="text" id="idx-openai-url" class="form-control" placeholder="https://api.gpt.ge/v1/">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Search Model</label>
+                            <select id="idx-openai-model" class="form-select">
+                                <option value="gemini-3-flash-preview-search" selected>gemini-3-flash-preview-search</option>
+                                <option value="gemini-3.1-pro-preview-search">gemini-3.1-pro-preview-search</option>
+                                <option value="gpt-5-search-api">gpt-5-search-api</option>
+                                <option value="deepseek-r1-search">deepseek-r1-search</option>
+                                <option value="deepseek-v3-search">deepseek-v3-search</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">输出前缀</label>
+                            <input type="text" id="idx-output-prefix" class="form-control" value="paper">
+                        </div>
+                        <div class="col-md-6" id="idx-dashboard-model-row">
+                            <label class="form-label">画像报告模型</label>
+                            <input type="text" id="idx-dashboard-model" class="form-control"
+                                placeholder="gemini-3-flash-preview-nothinking">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">系统令牌</label>
+                            <input type="text" id="idx-api-access-token" class="form-control form-control-sm"
+                                placeholder="额度查询令牌" autocomplete="off">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">用户 ID</label>
+                            <input type="text" id="idx-api-user-id" class="form-control form-control-sm"
+                                placeholder="数字 ID">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="idx-progress-section" class="cc-home-card" style="display:none;">
+                <div class="agent-progress-wrap">
+                    <div class="agent-progress-header">
+                        <div class="agent-phase-label">
+                            <div class="phase-dot"></div>
+                            <span id="idx-phase-label">处理中...</span>
+                        </div>
+                        <span id="idx-progress-text" class="agent-progress-count"></span>
+                    </div>
+                    <div class="agent-progress-track">
+                        <div id="idx-progress-bar" class="agent-progress-bar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="idx-log-section" class="reasoning-panel" style="display:none;">
+                <div class="reasoning-panel-header">
+                    <div class="rp-dots">
+                        <div class="rp-dot r"></div>
+                        <div class="rp-dot y"></div>
+                        <div class="rp-dot g"></div>
+                    </div>
+                    <span class="rp-title">实时日志</span>
+                    <div class="rp-thinking" id="rp-thinking-indicator">
+                        <div class="think-dot"></div>
+                        <div class="think-dot"></div>
+                        <div class="think-dot"></div>
+                        <span style="font-family:'Inter',sans-serif">Thinking and Searching</span>
+                    </div>
+                    <button id="idx-clear-log-btn" class="btn-agent-sm" style="margin-left:8px">清空</button>
+                </div>
+                <div class="reasoning-body" id="idx-log-container">
+                    <div class="reasoning-empty">
+                        <div class="reasoning-empty-icon">🤖</div>
+                        <div class="reasoning-empty-text">等待智能体启动...</div>
+                    </div>
+                </div>
+                <div id="running-heartbeat" style="display:none;position:relative;overflow:hidden;padding:7px 16px;background:rgba(255,200,30,0.13);border-top:1px solid rgba(200,160,0,0.25);font-size:12.5px;color:#7a6200;justify-content:center;">
+                    <span id="hb-msg">还在运行中，请耐心等待！</span>
+                    <span class="hb-crawler">🦞</span>
+                </div>
+            </div>
+
+            <div id="idx-results-section" style="display:none;">
+                <div class="agent-results-card">
+                    <div class="agent-results-header">
+                        <i class="bi bi-check-circle-fill"></i> 分析完成 — 结果文件
+                    </div>
+                    <div class="agent-results-body" id="idx-results-body"></div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="cc-home-rail">
+            <div class="cc-rail-card cc-rail-card--dark">
+                <p class="cc-section-kicker">执行操作</p>
+                <h3>准备开始新一轮引用图谱分析</h3>
+                <p class="cc-rail-copy">Ready to initiate citation graph generation. Estimated time: 4-6 minutes.</p>
+                <button id="idx-run-btn" class="btn-agent-primary cc-rail-primary">
+                    <i class="bi bi-play-fill"></i> 开始分析
+                </button>
+                <button id="idx-cancel-btn" class="btn-agent-danger cc-rail-secondary" style="display:none;">
+                    <i class="bi bi-stop-fill"></i> 取消
+                </button>
+                <button id="idx-save-config-btn" class="cc-results-inline-btn cc-results-inline-btn--dark">
+                    <i class="bi bi-save"></i>
+                    保存配置
+                </button>
+                <span id="idx-save-indicator" class="cc-save-pill">✓ 已保存</span>
+                <a href="#" data-spa-panel="results" class="cc-results-inline-btn cc-results-inline-btn--dark">
+                    <i class="bi bi-folder2-open"></i>
+                    查看结果文件夹
+                </a>
+            </div>
+
+            <div class="cc-rail-card">
+                <div class="cc-section-head cc-section-head--tight">
+                    <div>
+                        <p class="cc-section-kicker">System Notice</p>
+                        <h3>启动前提示</h3>
+                    </div>
+                </div>
+                <ul class="cc-note-list">
+                    <li>导入 Google Scholar 前，请先填写 ScraperAPI Key 与 V-API Key。</li>
+                    <li>基础服务适合快速筛查；高引用论文建议结合年份遍历使用。</li>
+                    <li>完整 Prompt、代理和重试策略可在 API Config 页继续调整。</li>
+                </ul>
+            </div>
+
+            <div class="cc-rail-card cc-preview-card">
+                <div class="cc-preview-visual"></div>
+                <div class="cc-preview-copy">
+                    <p class="cc-section-kicker">Preview</p>
+                    <h3>Citation Lineage Map Preview</h3>
+                    <p>运行完成后会生成结构化结果与 HTML 报告，适合直接预览、下载与归档。</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>

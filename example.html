@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CitationClaw | Results Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-low": "#f3f3f4",
+                    "inverse-primary": "#b4c5ff",
+                    "tertiary-fixed-dim": "#d2bbff",
+                    "on-background": "#1a1c1c",
+                    "on-secondary-fixed-variant": "#45455b",
+                    "background": "#f9f9f9",
+                    "tertiary-container": "#8343f4",
+                    "surface": "#f9f9f9",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#e2e0fc",
+                    "surface-variant": "#e2e2e2",
+                    "surface-dim": "#dadada",
+                    "secondary-fixed": "#e2e0fc",
+                    "surface-container-high": "#e8e8e8",
+                    "on-tertiary-container": "#f7edff",
+                    "on-secondary": "#ffffff",
+                    "surface-tint": "#0053db",
+                    "on-secondary-fixed": "#1a1a2e",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "on-tertiary-fixed-variant": "#5a00c6",
+                    "surface-container-highest": "#e2e2e2",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed": "#dbe1ff",
+                    "tertiary-fixed": "#eaddff",
+                    "on-tertiary-fixed": "#25005a",
+                    "on-error-container": "#93000a",
+                    "surface-bright": "#f9f9f9",
+                    "on-surface": "#1a1c1c",
+                    "outline-variant": "#c3c6d7",
+                    "on-surface-variant": "#434655",
+                    "tertiary": "#6a1edb",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-primary-container": "#eeefff",
+                    "secondary": "#5d5c74",
+                    "outline": "#737686",
+                    "on-secondary-container": "#63627a",
+                    "primary-container": "#2563eb",
+                    "inverse-surface": "#2f3131",
+                    "surface-container": "#eeeeee",
+                    "inverse-on-surface": "#f0f1f1",
+                    "error-container": "#ffdad6",
+                    "secondary-fixed-dim": "#c6c4df",
+                    "on-primary-fixed": "#00174b",
+                    "on-tertiary": "#ffffff",
+                    "primary": "#004ac6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0px",
+                    "lg": "0px",
+                    "xl": "0px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin": "48px",
+                    "xl": "40px",
+                    "unit": "4px",
+                    "lg": "24px",
+                    "gutter": "24px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "xs": "4px"
+            },
+            "fontFamily": {
+                    "h1": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "body-md": ["Inter"],
+                    "label-sm": ["Inter"],
+                    "code": ["Inter"],
+                    "h3": ["Inter"],
+                    "h2": ["Inter"]
+            },
+            "fontSize": {
+                    "h1": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                    "body-md": ["14px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "code": ["13px", {"lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "400"}],
+                    "h3": ["18px", {"lineHeight": "1.4", "letterSpacing": "0", "fontWeight": "600"}],
+                    "h2": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            background-color: #f9f9f9;
+            font-family: 'Inter', sans-serif;
+        }
+        .方正-border {
+            border: 1px solid #E5E7EB;
+        }
+        .blue-accent-border {
+            border-left: 3px solid #2563EB;
+        }
+    </style>
+</head>
+<body class="text-on-background">
+<!-- TopAppBar -->
+<header class="bg-white border-b border-slate-200 w-full fixed top-0 z-50">
+<div class="flex justify-between items-center h-16 px-6 max-w-[1440px] mx-auto">
+<div class="flex items-center gap-12 h-full">
+<span class="text-xl font-black text-slate-900 uppercase tracking-tighter">CitationClaw</span>
+<nav class="flex h-full items-center">
+<a class="text-slate-600 font-medium h-full flex items-center px-4 hover:bg-slate-50 hover:text-blue-600 transition-colors duration-150" href="#">Home</a>
+<a class="text-blue-600 border-b-2 border-blue-600 font-bold h-full flex items-center px-4 hover:bg-slate-50 transition-colors duration-150" href="#">Reports</a>
+<a class="text-slate-600 font-medium h-full flex items-center px-4 hover:bg-slate-50 hover:text-blue-600 transition-colors duration-150" href="#">Settings</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm" data-icon="search">search</span>
+<input class="方正-border bg-slate-50 pl-9 pr-4 py-2 text-sm focus:ring-0 focus:border-blue-600 w-64 outline-none" placeholder="Search citations..." type="text"/>
+</div>
+<button class="bg-primary-container text-white px-6 py-2 text-sm font-bold uppercase tracking-wider hover:bg-blue-700 transition-all duration-75">
+                    New Analysis
+                </button>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-16 px-6 max-w-[1440px] mx-auto min-h-screen">
+<!-- Header Section -->
+<div class="mb-xl flex justify-between items-end">
+<div>
+<p class="font-label-sm text-label-sm text-blue-600 uppercase mb-xs">Academic Workspace</p>
+<h1 class="font-h1 text-h1 text-slate-900">结果文件夹 <span class="text-slate-400 font-normal">/ Results Folder</span></h1>
+</div>
+<div class="flex gap-2">
+<button class="方正-border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50">
+<span class="material-symbols-outlined mr-2" data-icon="filter_list">filter_list</span>Filter
+                </button>
+<button class="方正-border bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50">
+<span class="material-symbols-outlined mr-2" data-icon="download">download</span>Export All
+                </button>
+</div>
+</div>
+<div class="grid grid-cols-12 gap-gutter">
+<!-- Left Column: Results Grid -->
+<div class="col-span-12 lg:col-span-8 space-y-lg">
+<!-- Main Folder View -->
+<div class="bg-white 方正-border p-lg">
+<div class="flex items-center justify-between mb-lg pb-sm border-b border-slate-100">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-blue-600" data-icon="folder_open">folder_open</span>
+<span class="font-h3 text-h3">Current Analysis Set (24)</span>
+</div>
+<span class="text-xs text-slate-400 font-medium">SORTED BY: DATE MODIFIED</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-md">
+<!-- Result Card 1 -->
+<div class="bg-white 方正-border p-md hover:border-slate-400 transition-colors group cursor-pointer blue-accent-border">
+<div class="flex justify-between items-start mb-sm">
+<span class="bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase text-slate-600">High Impact</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-blue-600" data-icon="more_vert">more_vert</span>
+</div>
+<h3 class="font-h3 text-h3 text-slate-900 mb-xs truncate">Quantum Neural Dynamics...</h3>
+<p class="text-slate-500 text-body-md line-clamp-2 mb-md">An exploration into non-linear citation mapping across multiple disciplinary boundaries...</p>
+<div class="flex items-center gap-4 text-xs text-slate-400">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="description">description</span> 142 Refs</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span> 2h ago</span>
+</div>
+</div>
+<!-- Result Card 2 -->
+<div class="bg-white 方正-border p-md hover:border-slate-400 transition-colors group cursor-pointer">
+<div class="flex justify-between items-start mb-sm">
+<span class="bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase text-slate-600">Peer Review</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-blue-600" data-icon="more_vert">more_vert</span>
+</div>
+<h3 class="font-h3 text-h3 text-slate-900 mb-xs truncate">Sustainable Urban Growth</h3>
+<p class="text-slate-500 text-body-md line-clamp-2 mb-md">Citation integrity report for the 2024 Environmental Science symposium submission...</p>
+<div class="flex items-center gap-4 text-xs text-slate-400">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="description">description</span> 89 Refs</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span> 5h ago</span>
+</div>
+</div>
+<!-- Result Card 3 -->
+<div class="bg-white 方正-border p-md hover:border-slate-400 transition-colors group cursor-pointer">
+<div class="flex justify-between items-start mb-sm">
+<span class="bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase text-slate-600">Cross-Ref</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-blue-600" data-icon="more_vert">more_vert</span>
+</div>
+<h3 class="font-h3 text-h3 text-slate-900 mb-xs truncate">Macroeconomic Shifts</h3>
+<p class="text-slate-500 text-body-md line-clamp-2 mb-md">Comparative analysis of citation clusters in global financial markets literature (2010-2023)...</p>
+<div class="flex items-center gap-4 text-xs text-slate-400">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="description">description</span> 312 Refs</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span> Yesterday</span>
+</div>
+</div>
+<!-- Result Card 4 -->
+<div class="bg-white 方正-border p-md hover:border-slate-400 transition-colors group cursor-pointer">
+<div class="flex justify-between items-start mb-sm">
+<span class="bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase text-slate-600">Pending</span>
+<span class="material-symbols-outlined text-slate-300 group-hover:text-blue-600" data-icon="more_vert">more_vert</span>
+</div>
+<h3 class="font-h3 text-h3 text-slate-900 mb-xs truncate">Digital Ethics Framework</h3>
+<p class="text-slate-500 text-body-md line-clamp-2 mb-md">Initial clawing of philosophical foundations in AI alignment research papers...</p>
+<div class="flex items-center gap-4 text-xs text-slate-400">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="description">description</span> 45 Refs</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm" data-icon="schedule">schedule</span> 2d ago</span>
+</div>
+</div>
+</div>
+<!-- Pagination -->
+<div class="mt-lg pt-md border-t border-slate-100 flex justify-between items-center">
+<span class="text-xs text-slate-500">Showing 1-4 of 24 results</span>
+<div class="flex gap-1">
+<button class="w-8 h-8 flex items-center justify-center 方正-border hover:bg-slate-50"><span class="material-symbols-outlined text-sm" data-icon="chevron_left">chevron_left</span></button>
+<button class="w-8 h-8 flex items-center justify-center 方正-border bg-blue-600 text-white text-xs font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center 方正-border hover:bg-slate-50 text-xs font-medium">2</button>
+<button class="w-8 h-8 flex items-center justify-center 方正-border hover:bg-slate-50 text-xs font-medium">3</button>
+<button class="w-8 h-8 flex items-center justify-center 方正-border hover:bg-slate-50"><span class="material-symbols-outlined text-sm" data-icon="chevron_right">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Stats & Recent -->
+<div class="col-span-12 lg:col-span-4 space-y-lg">
+<!-- Quick Stats Bento -->
+<div class="grid grid-cols-2 gap-sm">
+<div class="bg-white 方正-border p-md flex flex-col justify-center">
+<span class="font-label-sm text-slate-400 uppercase mb-1">H-Index (Avg)</span>
+<span class="text-h2 font-h2 text-blue-600">42.8</span>
+</div>
+<div class="bg-white 方正-border p-md flex flex-col justify-center">
+<span class="font-label-sm text-slate-400 uppercase mb-1">Total Claws</span>
+<span class="text-h2 font-h2 text-slate-900">1,894</span>
+</div>
+</div>
+<!-- Recent Tasks -->
+<div class="bg-white 方正-border p-lg">
+<h3 class="font-h3 text-h3 mb-lg flex items-center justify-between">
+                        Recent Analysis
+                        <span class="material-symbols-outlined text-slate-400" data-icon="history">history</span>
+</h3>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<div class="w-2 h-2 mt-1.5 bg-green-500"></div>
+<div>
+<p class="text-sm font-semibold text-slate-800">Genome Sequencing Vol 4</p>
+<p class="text-xs text-slate-400">Analysis completed successfully • 12m ago</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="w-2 h-2 mt-1.5 bg-blue-500"></div>
+<div>
+<p class="text-sm font-semibold text-slate-800">Renewable Energy Patterns</p>
+<p class="text-xs text-slate-400">Processing citation network... • 82%</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="w-2 h-2 mt-1.5 bg-slate-300"></div>
+<div>
+<p class="text-sm font-semibold text-slate-800">Post-Modern Architecture</p>
+<p class="text-xs text-slate-400">Queueing for metadata retrieval • 1h ago</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-lg py-3 text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-blue-600 border-t border-slate-100 transition-colors">
+                        View Task Queue
+                    </button>
+</div>
+<!-- Ad/Resource Card -->
+<div class="relative bg-slate-900 方正-border p-lg text-white overflow-hidden h-48 flex flex-col justify-end">
+<img alt="" class="absolute inset-0 w-full h-full object-cover opacity-30" data-alt="dramatic interior of a modern library with tall bookshelves and cold atmospheric lighting hitting dust particles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrK7g4W-1P7wjvgf6Kwcsk8UsGKRSo9zjKwV91rJNO6BdoUaglmHMkYvUTXyhm9yVoqfxOe1C0DKcV8wJxDX_4-RoVPv9aFvoGKLW2cYejAgCdt1HoaL_ATeO5mmzxncBqCeFbyqEygNZD8A6LHB9M7YNjYQGDxqVeOB_LvGEiSUBwGw87-RsceuMKOs1TVASKOHm01PA28TGbMGiCoBNqS0WAZzSGbDVDdm73accXqaXfG4v4CJtdM0ZfuXcOa5p9n68uYDsaBAs"/>
+<div class="relative z-10">
+<p class="font-label-sm text-blue-400 mb-1">PRO FEATURE</p>
+<h4 class="text-h3 font-h3 leading-tight mb-md">Deep Network Lineage Mapping</h4>
+<button class="bg-white text-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-tighter">Learn More</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="bg-slate-50 border-t border-slate-200 w-full">
+<div class="flex flex-col md:flex-row justify-between items-center py-10 px-8 max-w-[1440px] mx-auto gap-4">
+<div class="flex flex-col gap-1">
+<span class="text-sm font-bold text-slate-700">CitationClaw</span>
+<p class="font-inter text-xs uppercase tracking-widest text-slate-500">© 2024 CitationClaw Research. Scholarly Integrity &amp; Analysis.</p>
+</div>
+<div class="flex gap-8">
+<a class="font-inter text-xs uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-colors" href="#">Institutional Access</a>
+<a class="font-inter text-xs uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-colors" href="#">Methodology</a>
+<a class="font-inter text-xs uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-colors" href="#">Privacy Protocol</a>
+<a class="font-inter text-xs uppercase tracking-widest text-slate-500 hover:text-blue-600 transition-colors" href="#">API Docs</a>
+</div>
+</div>
+</footer>
+</body></html>

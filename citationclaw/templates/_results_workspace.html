@@ -1,0 +1,139 @@
+<div class="cc-results-workspace" data-results-mode="{{ 'embedded' if results_embedded else 'standalone' }}">
+    <div class="cc-results-page-head">
+        <div>
+            <p class="cc-results-kicker">Academic Workspace</p>
+            <h1 class="cc-results-title">结果文件夹 <span>/ Results Folder</span></h1>
+            <p class="cc-results-subtitle">
+                按分析批次浏览导出结果，支持快速预览 HTML 报告、下载结构化文件，并在同一视图中查看最近更新。
+            </p>
+        </div>
+        <div class="cc-results-actions">
+            <button id="refresh-btn" type="button" class="cc-results-btn cc-results-btn--ghost" data-results-refresh>
+                <i class="bi bi-arrow-clockwise"></i>
+                刷新列表
+            </button>
+            {% if results_embedded %}
+            <a href="#" data-spa-panel="home" class="cc-results-btn cc-results-btn--primary">
+                <i class="bi bi-plus-circle"></i>
+                新建任务
+            </a>
+            {% else %}
+            <a href="/config" class="cc-results-btn cc-results-btn--primary">
+                <i class="bi bi-plus-circle"></i>
+                新建任务
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="cc-results-layout">
+        <section class="cc-results-main">
+            <div class="cc-results-panel">
+                <div class="cc-results-panel-head">
+                    <div class="cc-results-panel-heading">
+                        <div class="cc-results-panel-icon">
+                            <i class="bi bi-folder2-open"></i>
+                        </div>
+                        <div>
+                            <p class="cc-results-panel-label">Current Analysis Set</p>
+                            <h2 id="results-panel-title" class="cc-results-panel-title">结果文件夹</h2>
+                        </div>
+                    </div>
+                    <div class="cc-results-panel-tools">
+                        <button id="results-back-btn" type="button" class="cc-results-inline-btn" style="display:none;" onclick="resultsShowFolders()">
+                            <i class="bi bi-arrow-left"></i>
+                            返回批次
+                        </button>
+                        <div class="cc-results-panel-metrics">
+                            <span id="results-panel-count" class="cc-results-metric">0 个批次</span>
+                            <span id="results-panel-updated" class="cc-results-metric">等待加载</span>
+                        </div>
+                        <p id="results-panel-note" class="cc-results-panel-note">按分析批次浏览最新结果。</p>
+                    </div>
+                </div>
+
+                <div id="loading-indicator" class="cc-results-state">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <h3>正在同步结果目录</h3>
+                    <p>系统正在读取结果文件夹与导出文件，请稍候。</p>
+                </div>
+
+                <div id="empty-state" class="cc-results-state cc-results-state-empty" style="display:none;">
+                    <i class="bi bi-inbox"></i>
+                    <h3 id="results-empty-title">暂无结果文件</h3>
+                    <p id="results-empty-copy">请先执行任务生成结果。</p>
+                    {% if results_embedded %}
+                    <a href="#" data-spa-panel="home" class="cc-results-btn cc-results-btn--primary">
+                        <i class="bi bi-play"></i>
+                        开始新任务
+                    </a>
+                    {% else %}
+                    <a href="/config" class="cc-results-btn cc-results-btn--primary">
+                        <i class="bi bi-play"></i>
+                        开始新任务
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div id="results-folder-view" style="display:none;">
+                    <div id="results-folder-list" class="cc-results-grid cc-results-folder-grid"></div>
+                </div>
+
+                <div id="results-file-view" style="display:none;">
+                    <div id="results-table" class="cc-results-grid cc-results-file-grid"></div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="cc-results-rail">
+            <div id="results-quick-stats" class="cc-results-stats"></div>
+
+            <div class="cc-results-rail-card">
+                <div class="cc-results-rail-head">
+                    <h3>Recent Activity</h3>
+                    <span class="cc-results-rail-icon"><i class="bi bi-clock-history"></i></span>
+                </div>
+                <div id="results-recent-list" class="cc-results-recent-list"></div>
+            </div>
+
+            <div class="cc-results-rail-card">
+                <div class="cc-results-rail-head">
+                    <h3>文件类型说明</h3>
+                    <span class="cc-results-rail-icon"><i class="bi bi-info-circle"></i></span>
+                </div>
+                <div class="cc-results-guide-list">
+                    <div class="cc-results-guide-row">
+                        <span class="cc-results-guide-badge is-excel">.xlsx</span>
+                        <div>
+                            <p>最终结果表</p>
+                            <small>包含论文与作者信息，适合直接阅读和筛选。</small>
+                        </div>
+                    </div>
+                    <div class="cc-results-guide-row">
+                        <span class="cc-results-guide-badge is-json">.json</span>
+                        <div>
+                            <p>结构化输出</p>
+                            <small>适合进一步程序处理或数据复用。</small>
+                        </div>
+                    </div>
+                    <div class="cc-results-guide-row">
+                        <span class="cc-results-guide-badge is-jsonl">.jsonl</span>
+                        <div>
+                            <p>中间处理文件</p>
+                            <small>用于保存原始引用与作者搜索过程数据。</small>
+                        </div>
+                    </div>
+                    <div class="cc-results-guide-row">
+                        <span class="cc-results-guide-badge is-report">.html</span>
+                        <div>
+                            <p>画像报告</p>
+                            <small>可直接在浏览器中预览最终分析报告。</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
