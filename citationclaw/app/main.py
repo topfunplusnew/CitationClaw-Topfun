@@ -59,6 +59,12 @@ async def results_page(request: Request):
     return templates.TemplateResponse("results.html", {"request": request})
 
 
+@app.get("/notice")
+async def notice_page(request: Request):
+    """使用须知独立页面"""
+    return templates.TemplateResponse("notice.html", {"request": request, "now": date.today().strftime("%Y-%m-%d")})
+
+
 # ==================== API路由 ====================
 @app.get("/api/config")
 async def get_config():

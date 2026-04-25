@@ -15,7 +15,7 @@
         <div class="agent-navbar-inner cc-navbar-inner">
             <a href="/" class="agent-brand">
                 <div class="agent-brand-icon">
-                    <img src="/static/citationclaw_icon.png" width="28" height="28" alt="CitationClaw" style="display:block">
+                    <img src="/static/citationclaw_icon.png" width="28" height="28" alt="CitationClaw" class="cc-brand-logo">
                 </div>
                 <div>
                     <div class="agent-brand-name">CitationClaw</div>
@@ -37,6 +37,9 @@
                 </a>
                 <a href="/results" class="agent-nav-link{% if request.url.path == '/results' %} active{% endif %}" data-spa-panel="results">
                     Reports
+                </a>
+                <a href="/notice" class="agent-nav-link{% if request.url.path == '/notice' %} active{% endif %}">
+                    Notice
                 </a>
             </div>
             <div class="cc-navbar-tools">

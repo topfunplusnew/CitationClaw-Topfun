@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}使用须知 - CitationClaw{% endblock %}
+
+{% block content %}
+<section class="cc-notice-page">
+  <header class="cc-page-head cc-notice-head">
+    <div class="cc-page-head-main">
+      <p class="cc-page-eyebrow">Usage Notice</p>
+      <h1 class="cc-page-title">使用须知</h1>
+      <p class="cc-page-desc">开始使用 CitationClaw 前，请先阅读以下提示以获得更好体验。</p>
+    </div>
+    <div class="cc-page-head-meta">
+      <span class="cc-notice-meta">作者提示 · {{ now }}</span>
+    </div>
+  </header>
+
+  <ol class="cc-notice-list">
+    <li class="cc-notice-item">
+      <span class="cc-notice-index">01</span>
+      <div class="cc-notice-body">
+        <h3 class="cc-notice-title">Token 费用预估</h3>
+        <p>CitationClaw 将消耗 Token，费用预估约 <strong>2 引用 / 1 元</strong>，请根据论文引用量谨慎使用。</p>
+      </div>
+    </li>
+    <li class="cc-notice-item">
+      <span class="cc-notice-index">02</span>
+      <div class="cc-notice-body">
+        <h3 class="cc-notice-title">Web Search 依赖</h3>
+        <p>
+          Web Search 功能依赖 V-API，请自行在第三方中转平台注册充值：
+          <a href="https://api.gpt.ge/register?aff=qH2n" target="_blank" rel="noopener" class="cc-notice-link">
+            api.gpt.ge <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+        </p>
+      </div>
+    </li>
+    <li class="cc-notice-item">
+      <span class="cc-notice-index">03</span>
+      <div class="cc-notice-body">
+        <h3 class="cc-notice-title">幻觉风险</h3>
+        <p>引用描述搜索部分存在一定 <strong>幻觉风险</strong>，建议对所得结果进行人工核验后再使用。</p>
+      </div>
+    </li>
+    <li class="cc-notice-item">
+      <span class="cc-notice-index">04</span>
+      <div class="cc-notice-body">
+        <h3 class="cc-notice-title">免责声明</h3>
+        <p>作者不对使用本工具产生的任何后果承担责任。</p>
+      </div>
+    </li>
+    <li class="cc-notice-item">
+      <span class="cc-notice-index">05</span>
+      <div class="cc-notice-body">
+        <h3 class="cc-notice-title">功能建议</h3>
+        <p>现版本建议使用 <strong>单篇搜索</strong>，多篇搜索功能待完善。</p>
+      </div>
+    </li>
+  </ol>
+
+  <div class="cc-notice-footer">
+    <a href="/" class="cc-notice-cta">
+      <i class="bi bi-arrow-right"></i>
+      我知道了，进入 Dashboard
+    </a>
+    <a href="https://visionxlab.github.io/CitationClaw/guidelines.html" target="_blank" rel="noopener" class="cc-notice-secondary">
+      查看完整配置指引 <i class="bi bi-box-arrow-up-right"></i>
+    </a>
+  </div>
+</section>
+{% endblock %}
