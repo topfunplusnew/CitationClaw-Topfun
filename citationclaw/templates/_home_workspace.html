@@ -29,7 +29,7 @@
                         <p class="cc-section-kicker">Dashboard</p>
                         <h2>分析任务设置</h2>
                     </div>
-                    <a href="https://visionxlab.github.io/CitationClaw/guidelines.html" target="_blank" rel="noopener" class="cc-page-link">
+                    <a href="https://visionxlab.github.io/Spark/guidelines.html" target="_blank" rel="noopener" class="cc-page-link">
                         <i class="bi bi-journal-text"></i>
                         配置指引
                     </a>
@@ -125,7 +125,7 @@
 
                     <div class="cc-inline-notice">
                         <label class="cc-check-row cc-check-row--wide">
-                            <input class="form-check-input" type="checkbox" id="enable-year-traverse" role="switch">
+                            <input class="form-check-input" type="checkbox" id="idx-enable-year-traverse" role="switch">
                             <span>按年份遍历</span>
                         </label>
                         <span class="cc-page-pill is-warning">适合 &gt;1000 引</span>
@@ -251,43 +251,26 @@
                 <p class="cc-section-kicker">执行操作</p>
                 <h3>准备开始新一轮引用图谱分析</h3>
                 <p class="cc-rail-copy">Ready to initiate citation graph generation. Estimated time: 4-6 minutes.</p>
-                <button id="idx-run-btn" class="btn-agent-primary cc-rail-primary">
-                    <i class="bi bi-play-fill"></i> 开始分析
-                </button>
-                <button id="idx-cancel-btn" class="btn-agent-danger cc-rail-secondary" style="display:none;">
-                    <i class="bi bi-stop-fill"></i> 取消
-                </button>
-                <button id="idx-save-config-btn" class="cc-results-inline-btn cc-results-inline-btn--dark">
-                    <i class="bi bi-save"></i>
-                    保存配置
-                </button>
-                <span id="idx-save-indicator" class="cc-save-pill">✓ 已保存</span>
-                <a href="#" data-spa-panel="results" class="cc-results-inline-btn cc-results-inline-btn--dark">
-                    <i class="bi bi-folder2-open"></i>
-                    查看结果文件夹
-                </a>
-            </div>
-
-            <div class="cc-rail-card">
-                <div class="cc-section-head cc-section-head--tight">
-                    <div>
-                        <p class="cc-section-kicker">System Notice</p>
-                        <h3>启动前提示</h3>
+                <div class="cc-rail-actions">
+                    <div class="cc-rail-actions-primary">
+                        <button id="idx-run-btn" class="btn-agent-primary cc-rail-primary">
+                            <i class="bi bi-play-fill"></i> 开始分析
+                        </button>
+                        <button id="idx-cancel-btn" class="btn-agent-danger cc-rail-secondary" style="display:none;">
+                            <i class="bi bi-stop-fill"></i> 取消
+                        </button>
                     </div>
-                </div>
-                <ul class="cc-note-list">
-                    <li>导入 Google Scholar 前，请先填写 ScraperAPI Key 与 V-API Key。</li>
-                    <li>基础服务适合快速筛查；高引用论文建议结合年份遍历使用。</li>
-                    <li>完整 Prompt、代理和重试策略可在 API Config 页继续调整。</li>
-                </ul>
-            </div>
-
-            <div class="cc-rail-card cc-preview-card">
-                <div class="cc-preview-visual"></div>
-                <div class="cc-preview-copy">
-                    <p class="cc-section-kicker">Preview</p>
-                    <h3>Citation Lineage Map Preview</h3>
-                    <p>运行完成后会生成结构化结果与 HTML 报告，适合直接预览、下载与归档。</p>
+                    <div class="cc-rail-actions-secondary">
+                        <button id="idx-save-config-btn" class="cc-results-inline-btn cc-results-inline-btn--dark">
+                            <i class="bi bi-save"></i>
+                            保存配置
+                        </button>
+                        <a href="#" data-spa-panel="results" class="cc-results-inline-btn cc-results-inline-btn--dark">
+                            <i class="bi bi-folder2-open"></i>
+                            查看结果文件夹
+                        </a>
+                    </div>
+                    <span id="idx-save-indicator" class="cc-save-pill">✓ 已保存</span>
                 </div>
             </div>
         </aside>

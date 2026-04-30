@@ -252,12 +252,42 @@ var GlobalProgress = (function () {
 
 // ==================== Shared Utility ====================
 function escapeHtml(unsafe) {
-    return unsafe
+    return String(unsafe ?? '')
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+function showOperationToast(type, title, message) {
+    const container = document.getElementById('cc-toast-container');
+    if (!container) {
+        if (type === 'error') alert(title + (message ? ': ' + message : ''));
+        return;
+    }
+
+    const toastType = ['success', 'error', 'info'].includes(type) ? type : 'info';
+    const icon = toastType === 'success' ? '✓' : (toastType === 'error' ? '!' : 'i');
+    const toast = document.createElement('div');
+    toast.className = `cc-operation-toast is-${toastType}`;
+    toast.innerHTML = `
+        <span class="cc-toast-icon">${icon}</span>
+        <div>
+            <p class="cc-toast-title">${escapeHtml(title)}</p>
+            ${message ? `<p class="cc-toast-message">${escapeHtml(message)}</p>` : ''}
+        </div>
+        <button type="button" class="cc-toast-close" aria-label="关闭提示">×</button>
+    `;
+    container.appendChild(toast);
+
+    const close = () => {
+        toast.classList.remove('is-visible');
+        setTimeout(() => toast.remove(), 180);
+    };
+    toast.querySelector('.cc-toast-close')?.addEventListener('click', close);
+    requestAnimationFrame(() => toast.classList.add('is-visible'));
+    setTimeout(close, toastType === 'error' ? 5200 : 3200);
 }
 
 // ==================== Config Panel Functions (module scope) ====================
@@ -680,47 +710,109 @@ async function resultsOpenFolder(folderName, displayName) {
 }
 
 function collectConfig() {
-    return {
-        scraper_api_keys: document.getElementById('scraper-api-keys').value
-            .split(',').map(k => k.trim()).filter(k => k),
-        openai_api_key: document.getElementById('openai-api-key').value,
-        openai_base_url: document.getElementById('openai-base-url').value,
-        openai_model: document.getElementById('openai-model').value,
-        default_output_prefix: document.getElementById('output-prefix').value,
-        sleep_between_pages: parseInt(document.getElementById('sleep-between-pages').value) || 10,
-        parallel_author_search: parseInt(document.getElementById('parallel-author-search').value) || 10,
-        resume_page_count: parseInt(document.getElementById('resume-page').value) || 0,
-        enable_year_traverse: document.getElementById('enable-year-traverse')?.checked ?? false,
-        debug_mode: document.getElementById('debug-mode').checked,
-        test_mode: document.getElementById('test-mode').checked,
-        retry_max_attempts: parseInt(document.getElementById('retry-max-attempts').value) || 3,
-        retry_intervals: document.getElementById('retry-intervals').value || '5,10,20',
-        scraper_premium: document.getElementById('scraper-premium').checked,
-        scraper_ultra_premium: document.getElementById('scraper-ultra-premium').checked,
-        scraper_session: document.getElementById('scraper-session').checked,
-        scholar_no_filter: document.getElementById('scholar-no-filter').checked,
-        scraper_geo_rotate: document.getElementById('scraper-geo-rotate').checked,
-        author_search_prompt1: document.getElementById('author-search-prompt1').value,
-        author_search_prompt2: document.getElementById('author-search-prompt2').value,
-        enable_renowned_scholar_filter: document.getElementById('enable-renowned-scholar').checked,
-        renowned_scholar_model: document.getElementById('renowned-scholar-model').value,
-        renowned_scholar_prompt: document.getElementById('renowned-scholar-prompt').value,
-        enable_author_verification: document.getElementById('enable-author-verification').checked,
-        author_verify_model: document.getElementById('author-verify-model').value,
-        author_verify_prompt: document.getElementById('author-verify-prompt').value,
-        api_access_token: document.getElementById('api-access-token').value,
-        api_user_id: document.getElementById('api-user-id').value
+    const config = {};
+    const setValue = (key, id, parser) => {
+        const field = document.getElementById(id);
+        if (!field) return;
+        try {
+            config[key] = parser ? parser(field) : field.value;
+        } catch (error) {
+            throw new Error(`读取字段失败：${id}（${error.message}）`);
+        }
     };
+    const setChecked = (key, id) => setValue(key, id, field => field.checked);
+    const setInteger = (key, id, fallback) => setValue(key, id, field => {
+        if (field.value === '') return fallback;
+        const value = parseInt(field.value, 10);
+        return Number.isFinite(value) ? value : fallback;
+    });
+
+    setValue('scraper_api_keys', 'scraper-api-keys', field =>
+        field.value.split(',').map(key => key.trim()).filter(Boolean)
+    );
+    setValue('openai_api_key', 'openai-api-key');
+    setValue('openai_base_url', 'openai-base-url');
+    setValue('openai_model', 'openai-model');
+    setValue('default_output_prefix', 'output-prefix');
+    setInteger('sleep_between_pages', 'sleep-between-pages', 10);
+    setInteger('parallel_author_search', 'parallel-author-search', 10);
+    setInteger('resume_page_count', 'resume-page', 0);
+    setChecked('enable_year_traverse', 'enable-year-traverse');
+    setChecked('debug_mode', 'debug-mode');
+    setChecked('test_mode', 'test-mode');
+    setInteger('retry_max_attempts', 'retry-max-attempts', 3);
+    setValue('retry_intervals', 'retry-intervals', field => field.value || '5,10,20');
+    setChecked('scraper_premium', 'scraper-premium');
+    setChecked('scraper_ultra_premium', 'scraper-ultra-premium');
+    setChecked('scraper_session', 'scraper-session');
+    setChecked('scholar_no_filter', 'scholar-no-filter');
+    setChecked('scraper_geo_rotate', 'scraper-geo-rotate');
+    setValue('author_search_prompt1', 'author-search-prompt1');
+    setValue('author_search_prompt2', 'author-search-prompt2');
+    setChecked('enable_renowned_scholar_filter', 'enable-renowned-scholar');
+    setValue('renowned_scholar_model', 'renowned-scholar-model');
+    setValue('renowned_scholar_prompt', 'renowned-scholar-prompt');
+    setChecked('enable_author_verification', 'enable-author-verification');
+    setValue('author_verify_model', 'author-verify-model');
+    setValue('author_verify_prompt', 'author-verify-prompt');
+    setChecked('enable_citing_description', 'enable-citing-description');
+    setChecked('enable_dashboard', 'enable-dashboard');
+    setValue('dashboard_model', 'dashboard-model');
+    setValue('api_access_token', 'api-access-token');
+    setValue('api_user_id', 'api-user-id');
+
+    return config;
 }
 
 async function saveConfigNow() {
     const config = collectConfig();
-    const response = await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
-    });
-    return await response.json();
+    return saveMergedConfig(config);
+}
+
+async function saveMergedConfig(config, options) {
+    const opts = options || {};
+    let existingResp;
+    try {
+        existingResp = await fetch('/api/config');
+    } catch (error) {
+        throw new Error(`读取现有配置失败：${error.message}`);
+    }
+    if (!existingResp.ok) {
+        throw new Error(`读取现有配置失败：HTTP ${existingResp.status}`);
+    }
+    const existing = await existingResp.json();
+    const nextConfig = Object.assign({}, existing, config);
+
+    if (opts.preserveEmptyUsageCredentials) {
+        if (!config.api_access_token && existing.api_access_token) {
+            nextConfig.api_access_token = existing.api_access_token;
+        }
+        if (!config.api_user_id && existing.api_user_id) {
+            nextConfig.api_user_id = existing.api_user_id;
+        }
+    }
+
+    let response;
+    try {
+        response = await fetch('/api/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nextConfig)
+        });
+    } catch (error) {
+        throw new Error(`请求保存接口失败：${error.message}`);
+    }
+
+    let data;
+    try {
+        data = await response.json();
+    } catch (error) {
+        throw new Error(`保存接口返回异常：HTTP ${response.status}`);
+    }
+    if (!response.ok || data.status !== 'success') {
+        throw new Error(data.message || `保存接口失败：HTTP ${response.status}`);
+    }
+    return data;
 }
 
 // ==================== 新首页逻辑（自动化流水线）====================
@@ -769,6 +861,16 @@ function initIndexPage() {
         'Phase 5': 'Phase 5 · 生成分析报告',
     };
     let currentPhase = '处理中...';
+    let indexConfigLoaded = false;
+    let indexAutoSaveTimeout;
+
+    function showIndexSaveIndicator(text) {
+        const ind = document.getElementById('idx-save-indicator');
+        if (!ind) return;
+        ind.textContent = text || '✓ 已保存';
+        ind.style.opacity = '1';
+        setTimeout(() => { ind.style.opacity = '0'; }, 2000);
+    }
 
     // 加载配置并填充 Home 面板表单
     (async () => {
@@ -785,21 +887,25 @@ function initIndexPage() {
             el('idx-renowned-scholar').checked = cfg.enable_renowned_scholar_filter !== false;
             el('idx-author-verify').checked = cfg.enable_author_verification || false;
             el('idx-dashboard').checked = cfg.enable_dashboard !== false;
+            el('idx-enable-year-traverse').checked = cfg.enable_year_traverse || false;
             el('idx-service-tier').value = cfg.service_tier || 'basic';
             el('idx-dashboard-model').value = cfg.dashboard_model || 'gemini-3-flash-preview-nothinking';
             el('idx-api-access-token').value = cfg.api_access_token || '';
             el('idx-api-user-id').value = cfg.api_user_id || '';
+            indexConfigLoaded = true;
         } catch (e) {
             console.error('加载配置失败:', e);
+            indexConfigLoaded = true;
         }
     })();
 
     // 保存配置按钮
     document.getElementById('idx-save-config-btn').addEventListener('click', async () => {
-        await saveIndexConfig();
+        await saveIndexConfig({ silent: false, source: 'manual' });
     });
 
-    async function saveIndexConfig() {
+    async function saveIndexConfig(options) {
+        const opts = options || {};
         const el = id => document.getElementById(id);
         const keys = el('idx-scraper-keys').value.split(',').map(k => k.trim()).filter(k => k);
         const body = {
@@ -811,6 +917,7 @@ function initIndexPage() {
             enable_renowned_scholar_filter: el('idx-renowned-scholar').checked,
             enable_author_verification: el('idx-author-verify').checked,
             enable_dashboard: el('idx-dashboard').checked,
+            enable_year_traverse: el('idx-enable-year-traverse').checked,
             service_tier: el('idx-service-tier').value,
             skip_author_search: false,
             // Derive citing-description settings directly from tier to ensure consistency
@@ -824,27 +931,54 @@ function initIndexPage() {
             api_user_id: el('idx-api-user-id').value,
         };
         try {
-            const cfgResp = await fetch('/api/config');
-            const existing = await cfgResp.json();
-            // 费用追踪字段：空值不覆盖已有配置
-            if (!body.api_access_token && existing.api_access_token) delete body.api_access_token;
-            if (!body.api_user_id && existing.api_user_id) delete body.api_user_id;
-            const merged = Object.assign({}, existing, body);
-            const resp = await fetch('/api/config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(merged)
+            const data = await saveMergedConfig(body, {
+                preserveEmptyUsageCredentials: true
             });
-            const data = await resp.json();
             if (data.status === 'success') {
-                const ind = document.getElementById('idx-save-indicator');
-                ind.style.opacity = '1';
-                setTimeout(() => { ind.style.opacity = '0'; }, 2000);
+                showIndexSaveIndicator();
+                if (!opts.silent) {
+                    showOperationToast('success', '首页配置已保存', '当前首页 API 与分析设置已写入本地配置。');
+                }
             }
+            return data;
         } catch (e) {
             console.error('保存配置失败:', e);
+            showIndexSaveIndicator('保存失败');
+            showOperationToast('error', '首页配置保存失败', e.message || '请检查配置内容后重试。');
+            return { status: 'error', message: e.message };
         }
     }
+
+    function autoSaveIndexConfig() {
+        if (!indexConfigLoaded) return;
+        clearTimeout(indexAutoSaveTimeout);
+        indexAutoSaveTimeout = setTimeout(async () => {
+            await saveIndexConfig({ silent: false, source: 'auto' });
+        }, 800);
+    }
+
+    const indexConfigInputs = [
+        'idx-scraper-keys',
+        'idx-openai-key',
+        'idx-openai-url',
+        'idx-openai-model',
+        'idx-output-prefix',
+        'idx-renowned-scholar',
+        'idx-author-verify',
+        'idx-dashboard',
+        'idx-enable-year-traverse',
+        'idx-service-tier',
+        'idx-dashboard-model',
+        'idx-api-access-token',
+        'idx-api-user-id'
+    ];
+
+    indexConfigInputs.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input) return;
+        input.addEventListener('input', autoSaveIndexConfig);
+        input.addEventListener('change', autoSaveIndexConfig);
+    });
 
     // ─── Service Tier Preset Logic ───
     const tierSelect = document.getElementById('idx-service-tier');
@@ -863,6 +997,7 @@ function initIndexPage() {
         const sw = preset.switches;
         document.getElementById('idx-renowned-scholar').checked = sw.enable_renowned_scholar_filter;
         document.getElementById('idx-dashboard').checked = sw.enable_dashboard;
+        autoSaveIndexConfig();
     });
 
     // WebSocket 事件监听
@@ -892,8 +1027,9 @@ function initIndexPage() {
 
         document.getElementById('yt-btn-enable').onclick = async () => {
             ytModal.hide();
-            const ytToggle = document.getElementById('enable-year-traverse');
+            const ytToggle = document.getElementById('idx-enable-year-traverse');
             if (ytToggle) ytToggle.checked = true;
+            await saveIndexConfig({ silent: false, source: 'year-traverse' });
             try {
                 await fetch('/api/task/year-traverse-respond', {
                     method: 'POST',
@@ -941,7 +1077,8 @@ function initIndexPage() {
             alert('请输入至少一篇论文题目');
             return;
         }
-        await saveIndexConfig();
+        const saveResult = await saveIndexConfig({ silent: false, source: 'run' });
+        if (!saveResult || saveResult.status !== 'success') return;
 
         // 预检查 LLM 余额
         try {
@@ -1308,9 +1445,11 @@ function initConfigPanel() {
                             saveIndicator.style.opacity = '0';
                         }, 2000);
                     }
+                    showOperationToast('success', 'API 配置已自动保存', '修改已写入本地配置文件。');
                 }
             } catch (error) {
                 console.error('自动保存配置失败:', error);
+                showOperationToast('error', 'API 配置自动保存失败', error.message || '请检查配置内容后重试。');
             }
         }, 1000);
     };
@@ -1378,7 +1517,23 @@ function initConfigPanel() {
     configForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         clearTimeout(autoSaveTimeout);
-        autoSaveConfig();
+        try {
+            const data = await saveConfigNow();
+            const saveIndicator = document.getElementById('save-indicator');
+            if (saveIndicator && data.status === 'success') {
+                saveIndicator.textContent = '✓ 已保存';
+                saveIndicator.style.opacity = '1';
+                setTimeout(() => {
+                    saveIndicator.style.opacity = '0';
+                }, 2000);
+            }
+            if (data.status === 'success') {
+                showOperationToast('success', 'API 配置已保存', '完整配置页的修改已写入本地配置。');
+            }
+        } catch (error) {
+            console.error('保存配置失败:', error);
+            showOperationToast('error', 'API 配置保存失败', error.message || '请检查配置内容后重试。');
+        }
     });
 
     // 测试API

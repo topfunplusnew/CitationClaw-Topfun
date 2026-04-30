@@ -15,7 +15,7 @@ from citationclaw.app.log_manager import LogManager
 
 
 # FastAPI应用
-app = FastAPI(title="CitationClaw", version="1.0.0")
+app = FastAPI(title="Spark", version="1.0.0")
 
 # 静态文件和模板（使用包内路径，兼容 pip install 和本地开发）
 _PKG_DIR = Path(__file__).parent.parent
@@ -362,7 +362,7 @@ def _build_report_system_prompt(ctx: dict) -> str:
         return "\n".join(f"  - {fn(x)}" for x in items[:limit]) or "  （无数据）"
 
     parts = [
-        "你是 CitationClaw🦞 智能分析助手，专门针对以下这份论文被引画像报告回答问题。",
+        "你是 Spark🦞 智能分析助手，专门针对以下这份论文被引画像报告回答问题。",
         "请基于报告数据作答，语言简洁专业，必要时引用具体数字。",
         "若问题超出报告数据范围，请如实说明。",
         "",
@@ -404,9 +404,9 @@ def _build_report_system_prompt(ctx: dict) -> str:
     return "\n".join(parts)
 
 
-_UI_SYSTEM_PROMPT = """你是 CitationClaw🦞 使用助手，帮助用户操作 CitationClaw 学术引用分析工具。
+_UI_SYSTEM_PROMPT = """你是 Spark🦞 使用助手，帮助用户操作 Spark 学术引用分析工具。
 
-## CitationClaw 核心功能
+## Spark 核心功能
 - 输入论文题目（或 Google Scholar 主页 URL）→ 自动爬取所有施引文献
 - 识别院士/Fellow 等知名学者，生成可视化 HTML 画像报告
 - 支持多篇论文批量分析、断点续爬、年份遍历模式（突破1000篇限制）
@@ -424,10 +424,10 @@ _UI_SYSTEM_PROMPT = """你是 CitationClaw🦞 使用助手，帮助用户操作
 
 ## 配置指引
 如果用户询问如何配置 API、如何快速开始或遇到配置相关问题，请主动引导用户查阅官方配置指引文档：
-👉 https://visionxlab.github.io/CitationClaw/guidelines.html
+👉 https://visionxlab.github.io/Spark/guidelines.html
 该文档包含完整的安装步骤、API 申请与填写说明、各参数含义及截图示例，是解决配置问题的最佳参考。
 
-请简洁、准确地回答用户关于使用 CitationClaw 的问题，不要涉及报告数据内容。"""
+请简洁、准确地回答用户关于使用 Spark 的问题，不要涉及报告数据内容。"""
 
 
 class ChatUIRequest(BaseModel):
@@ -809,7 +809,7 @@ async def websocket_endpoint(websocket: WebSocket):
 async def startup_event():
     """应用启动时"""
     print("=" * 50)
-    print("CitationClaw has been activated.")
+    print("Spark has been activated.")
     print("=" * 50)
 
 

@@ -2040,7 +2040,7 @@ a.author-pill:hover { background: var(--teal-light); border-color: var(--teal); 
 
 <!-- ═══ HEADER ═══ -->
 <div class="header">
-  <div class="header-eyebrow">CitationClaw</div>
+  <div class="header-eyebrow">Spark</div>
   <h1>引用论文<em>多维画像</em>分析报告</h1>
   {header_targets_html}
   <p class="header-subtitle">基于 {total_papers} 篇引用论文与 {stats['unique_scholars']} 位知名学者（含 {stats['fellow_count']} 位院士/Fellow）数据，结合大模型对引用描述的深度解读，全面呈现学术影响力格局</p>
@@ -2477,19 +2477,19 @@ new Chart(document.getElementById('cTrend'), {{
 #cc-send:disabled{{opacity:0.4;cursor:default}}
 </style>
 
-<button id="cc-fab" title="CitationClaw 智能助手"><img src="/docs-assets/head_logo.png" style="width:56px;height:56px;border-radius:50%;object-fit:cover;pointer-events:none"></button>
+<button id="cc-fab" title="Spark 智能助手"><img src="/docs-assets/head_logo.png" style="width:56px;height:56px;border-radius:50%;object-fit:cover;pointer-events:none"></button>
 <div id="cc-win" style="display:none">
   <div id="cc-header">
     <div>
-      <div id="cc-header-title">🦞 CitationClaw 智能助手</div>
+      <div id="cc-header-title">🦞 Spark 智能助手</div>
       <div id="cc-header-sub">基于本报告数据 · AI 驱动</div>
     </div>
     <button id="cc-close">✕</button>
   </div>
   <div id="cc-msgs">
-    <div class="cc-bubble ai">你好！我是 CitationClaw 智能助手🦞，已读取本报告所有数据。<br>你可以问我：引用趋势、知名学者、关键词分析、各类统计数据等任何问题。</div>
+    <div class="cc-bubble ai">你好！我是 Spark 智能助手🦞，已读取本报告所有数据。<br>你可以问我：引用趋势、知名学者、关键词分析、各类统计数据等任何问题。</div>
   </div>
-  <div id="cc-offline">⚠️ 离线模式：请通过 CitationClaw 应用打开报告以启用 AI 问答功能。</div>
+  <div id="cc-offline">⚠️ 离线模式：请通过 Spark 应用打开报告以启用 AI 问答功能。</div>
   <div id="cc-input-row">
     <textarea id="cc-input" rows="2" placeholder="问我关于这份报告的问题…（Enter 发送，Shift+Enter 换行）"></textarea>
     <button id="cc-send">发送</button>
@@ -2641,7 +2641,7 @@ new Chart(document.getElementById('cTrend'), {{
     }});
   }};
   }} catch(e) {{
-    console.error('[CitationClaw] Chat widget error:', e);
+    console.error('[Spark] Chat widget error:', e);
   }}
 }})();
 </script>

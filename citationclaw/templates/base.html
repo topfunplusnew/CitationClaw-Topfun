@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}CitationClaw{% endblock %}</title>
-    <link rel="icon" href="/static/citationclaw_icon.png">
+    <title>{% block title %}Spark{% endblock %}</title>
+    <link rel="icon" href="/static/assets/logo.jpg">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -15,22 +15,16 @@
         <div class="agent-navbar-inner cc-navbar-inner">
             <a href="/" class="agent-brand">
                 <div class="agent-brand-icon">
-                    <img src="/static/citationclaw_icon.png" width="28" height="28" alt="CitationClaw" class="cc-brand-logo">
+                    <img src="/static/assets/logo.jpg" alt="Spark" class="cc-brand-logo">
                 </div>
                 <div>
-                    <div class="agent-brand-name">CitationClaw</div>
+                    <div class="agent-brand-name">Spark</div>
                     <div class="agent-brand-sub">Turning Every Citation into Explainable Impact</div>
                 </div>
             </a>
             <div class="agent-nav-links cc-nav-links">
                 <a href="/" class="agent-nav-link{% if request.url.path == '/' %} active{% endif %}" data-spa-panel="home">
                     Dashboard
-                </a>
-                <a href="/#scholar-import-card" class="agent-nav-link cc-nav-link--section">
-                    Imports
-                </a>
-                <a href="/#service-tier-card" class="agent-nav-link cc-nav-link--section">
-                    Service Levels
                 </a>
                 <a href="/config" class="agent-nav-link{% if request.url.path == '/config' %} active{% endif %}" data-spa-panel="config">
                     API Config
@@ -56,8 +50,10 @@
         {% block content %}{% endblock %}
     </div>
 
+    <div id="cc-toast-container" class="cc-toast-container" aria-live="polite" aria-atomic="true"></div>
+
     <footer class="agent-footer">
-        <small>CitationClaw &nbsp;·&nbsp; 上海交通大学 VisionXLab@RethinkLab</small>
+        <small>Spark &nbsp;·&nbsp; 上海交通大学 VisionXLab@RethinkLab</small>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

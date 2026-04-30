@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}CitationClaw{% endblock %}
+{% block title %}Spark{% endblock %}
 
 {% block content %}
 
@@ -231,18 +231,18 @@ function escHtml(s) {
 }
 </script>
 
-<!-- ═══ CitationClaw UI Assistant Widget ═══ -->
-<button id="cc-ui-fab" onclick="ccuiToggle()" title="CitationClaw 使用助手"><img src="/static/citationclaw_icon.png" class="cc-ui-fab-image"></button>
+<!-- ═══ Spark UI Assistant Widget ═══ -->
+<button id="cc-ui-fab" onclick="ccuiToggle()" title="Spark 使用助手"><img src="/static/assets/logo.jpg" class="cc-ui-fab-image"></button>
 <div id="cc-ui-win" style="display:none">
   <div id="cc-ui-header">
     <div>
-      <div id="cc-ui-header-title">🦞 CitationClaw 使用助手</div>
+      <div id="cc-ui-header-title">🦞 Spark 使用助手</div>
       <div id="cc-ui-header-sub">操作指引 · 常见问题</div>
     </div>
     <button id="cc-ui-close" onclick="ccuiToggle()">✕</button>
   </div>
   <div id="cc-ui-msgs">
-    <div class="cc-ui-bubble ai">你好！我是 CitationClaw 使用助手🦞<br>可以帮你了解如何配置、操作，以及解答常见问题。</div>
+    <div class="cc-ui-bubble ai">你好！我是 Spark 使用助手🦞<br>可以帮你了解如何配置、操作，以及解答常见问题。</div>
   </div>
   <div id="cc-ui-chips">
     <span class="cc-ui-chip" onclick="ccuiAsk('如何配置 ScraperAPI？')">如何配置 ScraperAPI？</span>
@@ -251,7 +251,7 @@ function escHtml(s) {
     <span class="cc-ui-chip" onclick="ccuiAsk('任务中断如何续爬？')">任务中断续爬？</span>
   </div>
   <div id="cc-ui-input-row">
-    <textarea id="cc-ui-input" rows="2" placeholder="问我如何使用 CitationClaw…（Enter 发送）"></textarea>
+    <textarea id="cc-ui-input" rows="2" placeholder="问我如何使用 Spark…（Enter 发送）"></textarea>
     <button id="cc-ui-send" onclick="ccuiSend()">发送</button>
   </div>
 </div>
@@ -270,7 +270,7 @@ function escHtml(s) {
     var win = document.getElementById('cc-ui-win');
     var fab = document.getElementById('cc-ui-fab');
     win.style.display = isOpen ? 'flex' : 'none';
-    fab.innerHTML = isOpen ? '✕' : '<img src="/static/citationclaw_icon.png" class="cc-ui-fab-image">';
+    fab.innerHTML = isOpen ? '✕' : '<img src="/static/assets/logo.jpg" class="cc-ui-fab-image">';
     fab.style.fontSize = isOpen ? '18px' : '';
     if (isOpen) { var inp = document.getElementById('cc-ui-input'); if(inp) inp.focus(); }
   };
