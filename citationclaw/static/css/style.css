@@ -4183,8 +4183,8 @@ body.cc-app h6 {
 #cc-ui-fab {
   border-radius: var(--ef-r-sm) !important;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12) !important;
-  background: var(--ef-ink) !important;
-  color: #fff !important;
+  background: transparent !important;
+  color: var(--ef-ink) !important;
 }
 
 #cc-ui-fab:hover {
