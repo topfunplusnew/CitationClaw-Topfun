@@ -189,7 +189,10 @@ class GoogleScholarScraper:
                 if self.session_number:
                     payload['session_number'] = str(self.session_number)
 
-                r = requests.get('https://api.scraperapi.com/', params=payload, timeout=90)
+                self.log_callback(f"   正在请求 ScraperAPI (尝试 {attempt + 1}/{max_retries})...")
+                r = await asyncio.to_thread(
+                    requests.get, 'https://api.scraperapi.com/', params=payload, timeout=90
+                )
 
                 if r.status_code == 200:
                     self.consecutive_failures = 0  # 重置连续失败计数
@@ -219,6 +222,11 @@ class GoogleScholarScraper:
         self.log_callback(f"⚠️  请求失败,已重试 {max_retries} 次（连续失败: {self.consecutive_failures}）")
         return None
 
+    @staticmethod
+    def _parse_number_str(num_str: str) -> int:
+        """解析含逗号或空格千分位的数字字符串"""
+        return int(re.sub(r'[\s,]', '', num_str))
+
     def _parse_citation_count(self, html: str) -> int:
         """
         从 HTML 中提取引用总数
@@ -233,12 +241,12 @@ class GoogleScholarScraper:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(html, 'html.parser')
             stat_patterns = [
-                r'找到约\s*([\d,]+)\s*条',
-                r'获得\s*([\d,]+)\s*条',
-                r'约\s*([\d,]+)\s*条',
-                r'([\d,]+)\s*条结果',
-                r'About\s+([\d,]+)\s+results?',
-                r'^([\d,]+)\s+results?\b',
+                r'找到约\s*([\d,\s]+)\s*条',
+                r'获得\s*([\d,\s]+)\s*条',
+                r'约\s*([\d,\s]+)\s*条',
+                r'([\d,\s]+)\s*条结果',
+                r'About\s+([\d,\s]+)\s+results?',
+                r'^([\d,\s]+)\s+results?\b',
             ]
             candidates = []
             id_elem = soup.find(id='gs_ab_mdw')
@@ -251,7 +259,7 @@ class GoogleScholarScraper:
                 for pat in stat_patterns:
                     m = re.search(pat, stat_text, re.IGNORECASE)
                     if m:
-                        citation_count = int(m.group(1).replace(',', ''))
+                        citation_count = self._parse_number_str(m.group(1))
                         self.log_callback(f"🔍 结果统计元素文本: {stat_text[:100]}")
                         return citation_count
         except Exception:
@@ -259,17 +267,17 @@ class GoogleScholarScraper:
 
         # 第二步：对整个 HTML 做正则（数字可能含 <b> 标签）
         patterns = [
-            r'找到约\s*(?:<[^>]+>)?\s*([\d,]+)\s*(?:<[^>]+>)?\s*条',
-            r'获得\s*(?:<[^>]+>)?\s*([\d,]+)\s*(?:<[^>]+>)?\s*条',
-            r'约\s*(?:<[^>]+>)?\s*([\d,]+)\s*(?:<[^>]+>)?\s*条结果',
-            r'About\s+(?:<[^>]+>)?\s*([\d,]+)\s+results?',
-            r'([\d,]+)\s*条结果',
-            r'>(\d[\d,]*)\s+results?\b',
+            r'找到约\s*(?:<[^>]+>)?\s*([\d,\s]+)\s*(?:<[^>]+>)?\s*条',
+            r'获得\s*(?:<[^>]+>)?\s*([\d,\s]+)\s*(?:<[^>]+>)?\s*条',
+            r'约\s*(?:<[^>]+>)?\s*([\d,\s]+)\s*(?:<[^>]+>)?\s*条结果',
+            r'About\s+(?:<[^>]+>)?\s*([\d,\s]+)\s+results?',
+            r'([\d,\s]+)\s*条结果',
+            r'>(\d[\d,\s]*)\s+results?\b',
         ]
         for pattern in patterns:
             match = re.search(pattern, html, re.IGNORECASE)
             if match:
-                return int(match.group(1).replace(',', ''))
+                return self._parse_number_str(match.group(1))
 
         return 0
 
@@ -641,6 +649,8 @@ class GoogleScholarScraper:
 
                 # 抓取当前页
                 api_key_idx = page_count % len(self.api_keys)
+                pages_hint = estimated_pages if estimated_pages > 0 else '?'
+                self.log_callback(f"   正在抓取 {year} 年第 {page_count + 1}/{pages_hint} 页...")
                 html = await self.request_fn(current_url, api_key_idx, max_retries=self.retry_max_attempts)
 
                 if not html:
@@ -840,6 +850,11 @@ class GoogleScholarScraper:
                     _result = page_callback(paper_dict, year)
                     if asyncio.iscoroutine(_result):
                         await _result
+
+                self.log_callback(
+                    f"   ✅ {year} 年第 {page_count + 1} 页完成，本页 {paper_count_this_page} 篇"
+                    f"（累计 {total_papers} 篇）"
+                )
 
                 # 准备下一页
                 previous_url = current_url
