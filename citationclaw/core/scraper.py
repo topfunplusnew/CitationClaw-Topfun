@@ -74,10 +74,10 @@ class GoogleScholarScraper:
         self.session_enabled = session
         self.session_number = random.randint(100000, 999999) if session else None
 
-        # 重试配置
-        self.retry_max_attempts = retry_max_attempts if retry_max_attempts == -1 else max(1, retry_max_attempts)
+        # 重试配置（不支持无限重试，<=0 时使用默认值）
+        self.retry_max_attempts = self._normalize_retry_count(retry_max_attempts, 3)
         self.retry_intervals = self._parse_intervals(retry_intervals)
-        self.dc_retry_max_attempts = dc_retry_max_attempts if dc_retry_max_attempts == -1 else max(1, dc_retry_max_attempts)
+        self.dc_retry_max_attempts = self._normalize_retry_count(dc_retry_max_attempts, 5)
 
         # 费用追踪
         self.cost_tracker = cost_tracker
@@ -89,15 +89,27 @@ class GoogleScholarScraper:
         # 调试模式提示
         if self.debug_mode:
             self.log_callback("🐛 调试模式已启用：将保存HTML和详细日志")
-        retry_display = "无限" if self.retry_max_attempts == -1 else str(self.retry_max_attempts)
-        dc_retry_display_init = "无限" if self.dc_retry_max_attempts == -1 else str(self.dc_retry_max_attempts)
-        self.log_callback(f"🔄 重试配置: HTTP失败最多 {retry_display} 次，数据中心不一致最多 {dc_retry_display_init} 次，间隔 {self.retry_intervals} 秒")
+        self.log_callback(
+            f"🔄 重试配置: HTTP失败最多 {self.retry_max_attempts} 次，"
+            f"数据中心不一致最多 {self.dc_retry_max_attempts} 次，间隔 {self.retry_intervals} 秒"
+        )
         if self.session_enabled:
             self.log_callback(f"🔗 会话保持已启用 (session={self.session_number})")
         if self.no_filter:
             self.log_callback("🔍 filter=0 已启用：显示全部结果不过滤")
         if self.geo_rotate:
             self.log_callback("🌍 数据中心国家轮换已启用：重试时将切换 country_code")
+
+    @staticmethod
+    def _normalize_retry_count(value: int, default: int) -> int:
+        """规范化重试次数，<=0 时使用默认值"""
+        return value if value and value > 0 else default
+
+    def _abort_with_save(self, page_count: int, reason: str):
+        """达到最大重试次数，停止任务并保存断点"""
+        self.log_callback(reason)
+        self._save_resume_progress(page_count)
+        self.log_callback(f"⏸️  暂停抓取，请检查配置后从第 {page_count} 页继续")
 
     @staticmethod
     def _parse_intervals(intervals_str: str) -> list:
@@ -154,7 +166,6 @@ class GoogleScholarScraper:
         Returns:
             HTML文本,失败返回None
         """
-        # -1 表示上层无限重试，但单次HTTP请求限制为3次
         if max_retries <= 0:
             max_retries = 3
         for attempt in range(max_retries):
@@ -304,7 +315,7 @@ class GoogleScholarScraper:
         """
         self.log_callback("🔍 正在检测引用数量...")
 
-        max_attempts = 10 if self.retry_max_attempts == -1 else self.retry_max_attempts
+        max_attempts = self.retry_max_attempts
         for attempt in range(max_attempts):
             try:
                 api_idx = attempt % len(self.api_keys)
@@ -610,6 +621,7 @@ class GoogleScholarScraper:
         output_file.parent.mkdir(parents=True, exist_ok=True)
 
         with open(output_file, 'w', encoding='utf-8') as f:
+            page_retry_count = 0
             while current_url != 'EMPTY':
                 # 检查是否取消
                 if cancel_check and cancel_check():
@@ -632,15 +644,24 @@ class GoogleScholarScraper:
                 html = await self.request_fn(current_url, api_key_idx, max_retries=self.retry_max_attempts)
 
                 if not html:
-                    self.log_callback(f"❌ {year} 年第 {page_count} 页抓取失败")
-                    # 尝试使用不同的 API Key 再次请求
-                    await asyncio.sleep(self._get_retry_wait(0))
-                    html = await self.request_fn(current_url, (api_key_idx + 1) % len(self.api_keys), max_retries=self.retry_max_attempts)
-                    if not html:
-                        self.log_callback(f"❌ {year} 年第 {page_count} 页仍然失败，跳过")
-                        if self.consecutive_failures >= self.max_consecutive_failures:
-                            break
-                        continue
+                    page_retry_count += 1
+                    if page_retry_count >= self.retry_max_attempts:
+                        self._abort_with_save(
+                            page_count,
+                            f"❌ {year} 年第 {page_count} 页已达最大重试次数 {self.retry_max_attempts}，停止抓取"
+                        )
+                        return {
+                            'year': year, 'pages': page_count, 'papers': total_papers,
+                            'hit_limit': hit_limit, 'stopped': True
+                        }
+                    wait = self._get_retry_wait(page_retry_count - 1)
+                    self.log_callback(
+                        f"❌ {year} 年第 {page_count} 页抓取失败 ({page_retry_count}/{self.retry_max_attempts})，"
+                        f"等待 {wait} 秒后重试..."
+                    )
+                    await asyncio.sleep(wait)
+                    continue
+                page_retry_count = 0
 
                 # 解析 HTML
                 try:
@@ -661,16 +682,11 @@ class GoogleScholarScraper:
                     self.log_callback(f"🚫 {year} 年第 {page_count} 页检测到登录页面，启动重试...")
 
                     retry_success = False
-                    retry_display = "∞" if self.retry_max_attempts == -1 else str(self.retry_max_attempts)
-                    retry_num = 0
-                    while True:
-                        retry_num += 1
-                        if self.retry_max_attempts != -1 and retry_num > self.retry_max_attempts:
-                            break
+                    for retry_num in range(1, self.retry_max_attempts + 1):
                         if cancel_check and cancel_check():
                             break
                         retry_wait = self._get_retry_wait(retry_num - 1)
-                        self.log_callback(f"🔄 第 {retry_num}/{retry_display} 次重试，等待 {retry_wait} 秒...")
+                        self.log_callback(f"🔄 第 {retry_num}/{self.retry_max_attempts} 次重试，等待 {retry_wait} 秒...")
                         await asyncio.sleep(retry_wait)
 
                         # 更换session以尝试不同路由
@@ -703,9 +719,14 @@ class GoogleScholarScraper:
                             self.log_callback(f"⚠️ 重试 {retry_num} 仍检测到登录页面")
 
                     if not retry_success:
-                        self.log_callback(f"❌ {year} 年第 {page_count} 页重试 {retry_display} 次后仍失败，跳过该年")
-                        self.consecutive_failures += 1
-                        break
+                        self._abort_with_save(
+                            page_count,
+                            f"❌ {year} 年第 {page_count} 页登录拦截，重试 {self.retry_max_attempts} 次后仍失败，停止抓取"
+                        )
+                        return {
+                            'year': year, 'pages': page_count, 'papers': total_papers,
+                            'hit_limit': hit_limit, 'stopped': True
+                        }
 
                 # 数据中心不一致检测
                 paper_count_this_page = len(paper_dict)
@@ -730,19 +751,17 @@ class GoogleScholarScraper:
                         best_next_page = next_page
                         best_count = paper_count_this_page
 
-                        dc_retry_display = "∞" if self.dc_retry_max_attempts == -1 else str(self.dc_retry_max_attempts)
-                        dc_retry = 0
                         dc_retry_success = False
-                        while True:
-                            dc_retry += 1
-                            if self.dc_retry_max_attempts != -1 and dc_retry > self.dc_retry_max_attempts:
-                                break
+                        for dc_retry in range(1, self.dc_retry_max_attempts + 1):
                             if cancel_check and cancel_check():
                                 break
                             dc_wait = self._get_retry_wait(dc_retry - 1)
                             # 数据中心重试：始终切换国家代码以强制切换DC
                             country_code = self._get_retry_country(dc_retry)
-                            self.log_callback(f"🔄 数据中心重试 {dc_retry}/{dc_retry_display}，国家={country_code}，等待 {dc_wait} 秒...")
+                            self.log_callback(
+                                f"🔄 数据中心重试 {dc_retry}/{self.dc_retry_max_attempts}，"
+                                f"国家={country_code}，等待 {dc_wait} 秒..."
+                            )
                             await asyncio.sleep(dc_wait)
 
                             self._rotate_session()
@@ -836,7 +855,8 @@ class GoogleScholarScraper:
             'year': year,
             'pages': page_count,
             'papers': total_papers,
-            'hit_limit': hit_limit
+            'hit_limit': hit_limit,
+            'stopped': False,
         }
 
     async def scrape(
@@ -925,6 +945,10 @@ class GoogleScholarScraper:
                             page_callback=page_callback,
                         )
 
+                        if stats.get('stopped'):
+                            self.log_callback("❌ 重试次数已耗尽，任务停止")
+                            break
+
                         year_stats.append(stats)
                         total_papers_all_years += stats['papers']
 
@@ -999,6 +1023,7 @@ class GoogleScholarScraper:
             self.log_callback(f"⚠️  文件已存在，将被覆盖: {output_file}")
 
         with open(output_file, mode, encoding='utf-8') as f:
+            page_retry_count = 0
             while current_url != 'EMPTY':
                 # 检查是否取消
                 if cancel_check and cancel_check():
@@ -1021,19 +1046,21 @@ class GoogleScholarScraper:
                 html = await self.request_fn(current_url, api_key_idx, max_retries=self.retry_max_attempts)
 
                 if not html:
-                    self.log_callback(f"❌ 第 {page_count} 页抓取失败（已重试{self.retry_max_attempts}次）")
-                    # 不要跳过，而是等待后再次尝试
-                    extra_wait = self._get_retry_wait(self.retry_max_attempts - 1) * 2
-                    self.log_callback(f"⏳ 等待 {extra_wait} 秒后重新尝试该页...")
-                    await asyncio.sleep(extra_wait)
-                    # 再次尝试，使用不同的 API Key
-                    html = await self.request_fn(current_url, (api_key_idx + 1) % len(self.api_keys), max_retries=self.retry_max_attempts)
-                    if not html:
-                        self.log_callback(f"❌ 第 {page_count} 页仍然失败，暂时跳过")
-                        # 只有在连续失败次数过多时才停止
-                        if self.consecutive_failures >= self.max_consecutive_failures:
-                            break
-                        continue  # 跳过这一页，继续下一页
+                    page_retry_count += 1
+                    if page_retry_count >= self.retry_max_attempts:
+                        self._abort_with_save(
+                            page_count,
+                            f"❌ 第 {page_count} 页已达最大重试次数 {self.retry_max_attempts}，停止抓取"
+                        )
+                        break
+                    wait = self._get_retry_wait(page_retry_count - 1)
+                    self.log_callback(
+                        f"❌ 第 {page_count} 页抓取失败 ({page_retry_count}/{self.retry_max_attempts})，"
+                        f"等待 {wait} 秒后重试..."
+                    )
+                    await asyncio.sleep(wait)
+                    continue
+                page_retry_count = 0
 
                 # 解析HTML
                 try:
@@ -1069,16 +1096,11 @@ class GoogleScholarScraper:
 
                     # 🔄 启动重试机制
                     retry_success = False
-                    retry_display = "∞" if self.retry_max_attempts == -1 else str(self.retry_max_attempts)
-                    retry_num = 0
-                    while True:
-                        retry_num += 1
-                        if self.retry_max_attempts != -1 and retry_num > self.retry_max_attempts:
-                            break
+                    for retry_num in range(1, self.retry_max_attempts + 1):
                         if cancel_check and cancel_check():
                             break
                         retry_wait = self._get_retry_wait(retry_num - 1)
-                        self.log_callback(f"🔄 第 {retry_num}/{retry_display} 次重试当前页...")
+                        self.log_callback(f"🔄 第 {retry_num}/{self.retry_max_attempts} 次重试当前页...")
                         self.log_callback(f"⏳ 等待 {retry_wait} 秒后重新请求（换API Key和session）...")
                         await asyncio.sleep(retry_wait)
 
@@ -1115,12 +1137,10 @@ class GoogleScholarScraper:
                             self.log_callback(f"⚠️ 重试 {retry_num} 仍然检测到登录页面")
 
                     if not retry_success:
-                        # 所有重试都失败了
-                        self.log_callback(f"❌ 第 {page_count} 页重试 {retry_display} 次后仍然失败")
-                        self.consecutive_failures += 1
-                        self.log_callback(f"💾 保存当前进度: 第 {page_count} 页")
-                        self._save_resume_progress(page_count)
-                        self.log_callback("⏸️  暂停抓取，请检查配置后从第 {} 页继续".format(page_count))
+                        self._abort_with_save(
+                            page_count,
+                            f"❌ 第 {page_count} 页登录拦截，重试 {self.retry_max_attempts} 次后仍失败，停止抓取"
+                        )
                         break
                     else:
                         # 重试成功，重置失败计数
@@ -1153,19 +1173,17 @@ class GoogleScholarScraper:
                         best_next_page = next_page
                         best_count = paper_count_this_page
 
-                        dc_retry_display = "∞" if self.dc_retry_max_attempts == -1 else str(self.dc_retry_max_attempts)
-                        dc_retry = 0
                         dc_retry_success = False
-                        while True:
-                            dc_retry += 1
-                            if self.dc_retry_max_attempts != -1 and dc_retry > self.dc_retry_max_attempts:
-                                break
+                        for dc_retry in range(1, self.dc_retry_max_attempts + 1):
                             if cancel_check and cancel_check():
                                 break
                             dc_wait = self._get_retry_wait(dc_retry - 1)
                             # 数据中心重试：始终切换国家代码以强制切换DC
                             country_code = self._get_retry_country(dc_retry)
-                            self.log_callback(f"🔄 数据中心重试 {dc_retry}/{dc_retry_display}，国家={country_code}，等待 {dc_wait} 秒...")
+                            self.log_callback(
+                                f"🔄 数据中心重试 {dc_retry}/{self.dc_retry_max_attempts}，"
+                                f"国家={country_code}，等待 {dc_wait} 秒..."
+                            )
                             await asyncio.sleep(dc_wait)
 
                             # 更换session number以尝试不同的代理路由

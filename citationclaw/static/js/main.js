@@ -740,7 +740,7 @@ function collectConfig() {
     setChecked('enable_year_traverse', 'enable-year-traverse');
     setChecked('debug_mode', 'debug-mode');
     setChecked('test_mode', 'test-mode');
-    setInteger('retry_max_attempts', 'retry-max-attempts', 3);
+    setValue('retry_max_attempts', 'retry-max-attempts', field => Math.max(1, parseInt(field.value, 10) || 3));
     setValue('retry_intervals', 'retry-intervals', field => field.value || '5,10,20');
     setChecked('scraper_premium', 'scraper-premium');
     setChecked('scraper_ultra_premium', 'scraper-ultra-premium');

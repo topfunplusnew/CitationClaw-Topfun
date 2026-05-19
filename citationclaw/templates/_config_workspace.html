@@ -282,10 +282,10 @@
                                 class="form-control"
                                 id="retry-max-attempts"
                                 value="3"
-                                min="-1"
+                                min="1"
                             >
                             <div class="form-text">
-                                所有错误类型统一使用此重试次数（-1 = 无限重试直到成功）
+                                所有错误类型统一使用此重试次数，超过后将停止任务并保存断点
                             </div>
                         </div>
                         <div class="col-md-8 mb-3">

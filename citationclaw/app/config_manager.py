@@ -44,10 +44,10 @@ class AppConfig(BaseModel):
     scraper_geo_rotate: bool = Field(default=False, description="数据中心重试时自动切换国家代码（需Business Plan及以上）")
 
     # 重试配置
-    retry_max_attempts: int = Field(default=3, description="HTTP/登录页错误的最大重试次数")
+    retry_max_attempts: int = Field(default=3, ge=1, description="HTTP/登录页错误的最大重试次数")
     retry_intervals: str = Field(default="5,10,20",
                                  description="重试间隔（秒），逗号分隔。如 '10' 表示固定10秒，'5,10,20' 表示依次等待5/10/20秒")
-    dc_retry_max_attempts: int = Field(default=5, description="数据中心不一致时的最大重试次数（每次自动切换国家代码）")
+    dc_retry_max_attempts: int = Field(default=5, ge=1, description="数据中心不一致时的最大重试次数（每次自动切换国家代码）")
 
     # 作者搜索Prompt配置
     author_search_prompt1: str = Field(
@@ -143,6 +143,11 @@ class ConfigManager:
                 with open(self.config_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     data.pop("enable_year_traverse", None)  # 永不从磁盘恢复
+                    # 兼容旧配置：-1 表示无限重试，现已移除
+                    if data.get("retry_max_attempts", 3) <= 0:
+                        data["retry_max_attempts"] = 3
+                    if data.get("dc_retry_max_attempts", 5) <= 0:
+                        data["dc_retry_max_attempts"] = 5
                     return AppConfig(**data)
             except Exception as e:
                 print(f"加载配置失败: {e}, 使用默认配置")
